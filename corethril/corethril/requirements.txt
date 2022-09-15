@@ -1,0 +1,7 @@
+certifi
+peewee
+requests
+solc-select==0.2.0
+mythril==0.23.9
+psycopg2-binary==2.9.3
+beautifulsoup4==4.11.1

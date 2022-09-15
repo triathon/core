@@ -1,0 +1,5 @@
+certifi
+solc-select==0.2.0
+slither-analyzer==0.8.3
+peewee==3.15.2
+psycopg2==2.9.3

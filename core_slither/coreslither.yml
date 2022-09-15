@@ -1,0 +1,9 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://101.42.119.16:31112
+functions:
+  coreslither:
+    lang: python3-flask-debian
+    handler: ./coreslither
+    image: xiaowei6688/coreslither:latest
