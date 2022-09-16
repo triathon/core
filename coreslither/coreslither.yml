@@ -8,13 +8,10 @@ functions:
     handler: ./coreslither
     image: xiaowei6688/coreslither:latest
     environment:
+      write_debug: true
       write_timeout: 300
       read_timeout: 300
       exec_timeout: 300
       handler_wait_duration: 300
+      max_inflight: 10
       healthcheck_interval: 5
-    annotations:
-      topic: "pipeline.subscription"
-    labels:
-      com.openfaas.scale.min: 1
-      com.openfaas.scale.max: 5
