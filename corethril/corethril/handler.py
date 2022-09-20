@@ -63,6 +63,7 @@ def temporaryFile(data, s_id):
             db_result["corethril"] = issues_list
             data_db.result = json.dumps(db_result)
             data_db.save()
+        return "Detection succeeded"
     return result
 
 
@@ -71,71 +72,10 @@ def handle(req):
     Args:
         req (str): request body
     """
-    req_type, req_json = is_dict(req)
-    if not req_type:
-        return {
-            "code": 202,
-            "msg": "The parameters are out of specification"
-        }
-
-    s_id = req_json.get("id", "")
-    action = req_json.get("action", "")
-    address = req_json.get("address", "")
-    address_type = req_json.get("address_type", "")
-    user_id = req_json.get("user_id", "")
-
+    s_id = int(req)
     if s_id:
         data = Testing.select().where(Testing.id == s_id).first()
         if not data:
-            return {
-                "code": 202,
-                "msg": "There is no corresponding contract"
-            }
-        print(data.content)
+            return "There is no corresponding contract"
         result = temporaryFile(data.content, s_id)
-
-        return {
-            "code": 200,
-            "msg": result
-        }
-
-    if address:
-        if not address_type:
-            return {
-                "code": 202,
-                "msg": "Contract address bsc or eth"
-            }
-
-        if not user_id:
-            return {
-                "code": 202,
-                "msg": "User ID required"
-            }
-
-        if action and int(action) > 2:
-            return {
-                "code": 202,
-                "msg": "Contract operation 1 storage code obtain result 2 reading result default 1"
-            }
-
-        if not action or int(action) == 2:
-            status, data, s_id = get_contract(address, address_type, user_id, False)
-        else:
-            status, data, s_id = get_contract(address, address_type, user_id)
-
-        if not status:
-            return {
-                "code": 202,
-                "msg": data
-            }
-        result = temporaryFile(data, s_id)
-
-        return {
-            "code": 200,
-            "msg": result
-        }
-
-    return {
-        "code": 201,
-        "msg": "Parameter failed"
-    }
+        return result

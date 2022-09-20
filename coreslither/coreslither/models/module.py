@@ -18,10 +18,10 @@ def json2object(filename):
         'host': data.db_host,
         'port': data.db_port,
     }
-    return PG_SQL_LOCAL
+    return PG_SQL_LOCAL, data
 
 
-CONF = json2object(config_path + '/config.conf')
+CONF, DATA = json2object(config_path + '/config.conf')
 
 database = PostgresqlDatabase(
     CONF["database"],

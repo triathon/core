@@ -9,16 +9,6 @@ from slither.detectors.abstract_detector import AbstractDetector
 from slither.detectors import all_detectors
 
 
-def is_dict(req: str) -> tuple:
-    try:
-        if type(literal_eval(req)) != dict:
-            return False, req
-        else:
-            return True, literal_eval(req)
-    except EOFError:
-        return False, req
-
-
 pattern = r"\(.*?\)"
 
 
@@ -27,28 +17,11 @@ def handle(req):
     Args:
         req (str): request body
     """
-    b, req_json = is_dict(req)
-    if not b:
-        return {
-            "code": 202,
-            "msg": "The parameters are out of specification"
-        }
-
-    s_id = req_json.get("id", "")
-    action = req_json.get("action", "")
-    if not s_id or not action:
-        return {
-            "code": 201,
-            "msg": "Parameter failed"
-        }
-
+    s_id = int(req)
     result_list = []
     data = Testing.select().where(Testing.id == s_id).first()
     if not data:
-        return {
-            "code": 201,
-            "msg": "Invalid resource"
-        }
+        return "Invalid resource"
 
     with NamedTemporaryFile('w+t', suffix=".sol") as f:
         f.write(data.content)
@@ -64,14 +37,8 @@ def handle(req):
                 return "Missing dependent file"
             return err_str
 
-    if int(action) == 1:
-        data = Functional.select().where(Functional.test_id == s_id).first()
-        if data:
-            return {
-                "code": 201,
-                "msg": "Already exists"
-            }
-
+    data = Functional.select().where(Functional.test_id == s_id).first()
+    if not data:
         function_list = []
         for contract in slither.contracts:
             contract_list = []
@@ -85,42 +52,32 @@ def handle(req):
                 "contract": contract.name,
                 "function": contract_list
             })
+
         Functional.create(
             test_id=s_id,
             function=json.dumps(function_list)
         )
-        return {
-            "code": 200,
-            "msg": "function storage completed"
-        }
 
-    if int(action) == 2:
-        detectors = [getattr(all_detectors, name) for name in dir(all_detectors)]
-        detectors = [d for d in detectors if inspect.isclass(d) and issubclass(d, AbstractDetector)]
-        for detector_cls in detectors:
-            slither.register_detector(detector_cls)
-        result = slither.run_detectors()
-        for values in result:
-            if values:
-                for value in values:
-                    val_dict = dict(value)
-                    description = val_dict["description"]
-                    matching = re.findall(pattern, description)
-                    for match in matching:
-                        if len(match) > 20:
-                            description = description.replace(match, "")
-                    result_list.append(description)
-        testing = Testing.select().where(Testing.id == s_id).first()
-        if testing:
-            t_result = json.loads(testing.result)
-            t_result["core_slither"] = result_list
-            testing.result = json.dumps(t_result)
-            testing.save()
+    detectors = [getattr(all_detectors, name) for name in dir(all_detectors)]
+    detectors = [d for d in detectors if inspect.isclass(d) and issubclass(d, AbstractDetector)]
+    for detector_cls in detectors:
+        slither.register_detector(detector_cls)
+    result = slither.run_detectors()
+    for values in result:
+        if values:
+            for value in values:
+                val_dict = dict(value)
+                description = val_dict["description"]
+                matching = re.findall(pattern, description)
+                for match in matching:
+                    if len(match) > 20:
+                        description = description.replace(match, "")
+                result_list.append(description)
+    testing = Testing.select().where(Testing.id == s_id).first()
+    if testing:
+        t_result = json.loads(testing.result)
+        t_result["core_slither"] = result_list
+        testing.result = json.dumps(t_result)
+        testing.save()
 
-        return {
-            "code": 200,
-            "msg": "Detection completed"
-        }
-
-a = handle('{"id":3, "action":1}')
-print(a)
+    return "Detection completed"

@@ -57,7 +57,7 @@ ENV upstream_url="http://127.0.0.1:5000"
 HEALTHCHECK --interval=5s CMD [ -e /tmp/.lock ] || exit 1
 RUN solc-select install 0.5.16
 RUN solc-select install 0.6.11
-RUN solc-select install 0.7.5
-RUN solc-select install 0.8.5
-RUN solc-select use 0.6.11
+RUN solc-select install 0.7.6
+RUN solc-select install 0.8.16
+RUN solc-select use 0.8.16
 CMD ["fwatchdog"]
