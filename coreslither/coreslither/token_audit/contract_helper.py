@@ -11,12 +11,14 @@ def find_real_contract(file_slither):
     contract_list = [one for one in file_slither.contracts if not (one.is_interface or one.is_library)]
     real_contract = None
     inherit_count = 0
-    if len(contract_list) > 1:
+    if len(contract_list) == 1:
+        return contract_list[0]
+    else:
+        #TODO build derived map for all contract in contract_list
+        # find the contract which has no subclass
         for one in contract_list:
             if len(one.inheritance) > inherit_count:
                 real_contract = one
-    else:
-        real_contract = contract_list[0]
         # find more specific method to determine the real contract
     return real_contract
 
@@ -34,7 +36,7 @@ def find_only_owner_modifier(contract):
                 target_list.append(modifier)
     if target_list:
         return target_list[0]
-                
+
 
 def find_balance_var(contract):
     # find balance var  from  balanceOf(address)
@@ -53,12 +55,12 @@ def find_balance_var(contract):
 def find_total_supply(contract):
     total_supply = contract.get_function_from_full_name('totalSupply()')
     return total_supply.all_state_variables_read()[0]
-    
+
 
 def collect_state_variable(contract):
     # collect all the variables which load on block
     write_var = contract.all_state_variables_written
-    
+
 
 
 def check_black_list(contract):
@@ -78,9 +80,8 @@ def check_black_list(contract):
             return True
 
 
-    
-    
-    
+
+
+
 def mint_check(contract):
     ...
-    
