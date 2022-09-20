@@ -3,7 +3,8 @@ from slither.core.solidity_types import MappingType
 from slither.core.solidity_types import ArrayType
 from slither.core.solidity_types import ElementaryType
 from slither.core.solidity_types import UserDefinedType
-a = Slither('BACK.sol')
+
+# a = Slither('BACK.sol')
 
 def find_real_contract(file_slither):
     # get the real contract, whose constructor executed in contract creation
@@ -16,12 +17,18 @@ def find_real_contract(file_slither):
                 real_contract = one
     else:
         real_contract = contract_list[0]
+        # find more specific method to determine the real contract
     return real_contract
 
 def find_only_owner_modifier(contract):
-    # find The only owner modifier
+    # find The only owner modifier, which name can be only_admin,only_root
     target_list = []
+
     for modifier in contract.modifiers:
+        #1 ,must check the caller ,ie _MsgSender
+        if '_msgSender' not in modifier.all_internal_calls():
+            continue
+        #2,compare with address state var
         for var in modifier._all_state_variables_read:
             if type(var.type)==ElementaryType and var.type.name == "address":
                 target_list.append(modifier)
