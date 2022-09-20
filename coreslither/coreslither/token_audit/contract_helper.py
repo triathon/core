@@ -38,9 +38,9 @@ def find_only_owner_modifier(contract):
 
 def find_balance_var(contract):
     # find balance var  from  balanceOf(address)
-    balanceof = contract.get_function_from_full_name('balanceOf(address)')
+    balance_of = contract.get_function_from_full_name('balanceOf(address)')
 
-    write_var = balanceof.all_state_variables_read
+    write_var = balance_of.all_state_variables_read
     target_list = []
     for one in write_var:
         if one.type == MappingType and one.signature[1]== ['address'] and one.signature[2] == ['uint256']:
@@ -49,6 +49,11 @@ def find_balance_var(contract):
         print("more than one candidate")
     return target_list[0]
 
+
+def find_total_supply(contract):
+    total_supply = contract.get_function_from_full_name('totalSupply()')
+    return total_supply.all_state_variables_read()[0]
+    
 
 def collect_state_variable(contract):
     # collect all the variables which load on block
