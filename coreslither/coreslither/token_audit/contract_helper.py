@@ -32,12 +32,10 @@ def find_only_owner_modifier(contract):
         for var in modifier._all_state_variables_read:
             if type(var.type)==ElementaryType and var.type.name == "address":
                 target_list.append(modifier)
-    return target_list
+    if target_list:
+        return target_list[0]
                 
-def collect_state_variable(contract):
-    # collect all the variables which load on block
-    write_var = contract.all_state_variables_read
-    
+
 def find_balance_var(contract):
     write_var = contract.all_state_variables_read
     target_list = []
@@ -46,16 +44,30 @@ def find_balance_var(contract):
             target_list.append(one)
     if len(target_list) == 1:
         return target_list[0]
+
+
+def collect_state_variable(contract):
+    # collect all the variables which load on block
+    write_var = contract.all_state_variables_written
     
+
+
 def check_black_list(contract):
+    #1 store address list
     write_var = contract.all_state_variables_read
     target_list = []
     for one in write_var:
         if one.type == MappingType and one.signature[1]== ['address'] and one.signature[2] == ['bool']:
             target_list.append(one)
-    if not target_list:
-        return False
-    
+    #2 only owner can change the state variable
+    #3 which function is public
+    only_owner_modifier =  contract.find_only_owner_modifier(contract)
+    for one in contract.functions:
+        if only_owner_modifier not in one.modifiers:
+            continue
+        if set(target_list).intersection(set(one.all_state_variables_written())):
+            return True
+
 
     
     
