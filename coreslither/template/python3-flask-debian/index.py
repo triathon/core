@@ -57,9 +57,9 @@ def main_route(path):
 
 if __name__ == '__main__':
     while True:
-        id_list = rc.lrange(data.coreslither, 0, 4)
+        id_list = rc.lrange(data.task_queue, 0, 4)
         if id_list:
-            contract_id = rc.rpop(data.coreslither)
+            contract_id = rc.rpop(data.task_queue)
             result = handler.handle(contract_id)
             print("db contract index {}, {}".format(contract_id, result))
             time.sleep(2)
