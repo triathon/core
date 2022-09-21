@@ -1,7 +1,7 @@
 import re
 import json
 import inspect
-from .models.module import Testing, Functional
+from models.module import Testing, Functional
 from slither.slither import Slither
 from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
@@ -23,18 +23,17 @@ def handle(req):
     if not data:
         return "Invalid resource"
 
-    version = re.search("pragma solidity ([\d.^]*)", data.content).group(1)
-    if not version:
-        return "Whether the contract contains the correct version"
-    version = version.replace("^", "")[:3]
-    if version == "0.5":
-        switch_global_version("0.5.16")
-    if version == "0.6":
-        switch_global_version("0.6.11")
-    if version == "0.7":
-        switch_global_version("0.7.6")
-    if version == "0.8":
-        switch_global_version("0.8.16")
+    version = re.search("pragma solidity ([\d.^]*)", data.content)
+    if version:
+        version = version.group(1).replace("^", "")[:3]
+        if version == "0.5":
+            switch_global_version("0.5.16")
+        if version == "0.6":
+            switch_global_version("0.6.11")
+        if version == "0.7":
+            switch_global_version("0.7.6")
+        if version == "0.8":
+            switch_global_version("0.8.16")
 
     with NamedTemporaryFile('w+t', suffix=".sol") as f:
         f.write(data.content)
