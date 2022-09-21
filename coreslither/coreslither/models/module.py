@@ -2,6 +2,7 @@ from peewee import *
 import json
 from pathlib import Path
 from types import SimpleNamespace as Namespace
+import random
 
 
 config_path = str(Path(__file__).parent.parent)
@@ -64,3 +65,19 @@ def create_table(table):
 
 create_table(Testing)
 create_table(Functional)
+
+
+
+class Document(BaseModel):
+    file_name = CharField(max_length=255)
+    file_type = CharField(max_length=5)
+    date = BigIntegerField()
+    sha1 = CharField(max_length=40)
+    file = BitField()
+    network = TextField(null=True)
+    contract_address = TextField(null=True)
+    result = TextField(default="{}")
+    functions = TextField(null=True)
+
+    class Meta:
+        table_name = "document"
