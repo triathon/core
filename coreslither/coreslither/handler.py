@@ -1,7 +1,7 @@
 import re
 import json
 import inspect
-from models.module import Testing, Functional
+from .models.module import Testing, Functional
 from slither.slither import Slither
 from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
