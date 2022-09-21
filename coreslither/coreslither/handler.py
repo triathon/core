@@ -4,9 +4,9 @@ import inspect
 from .models.module import Testing, Functional
 from slither.slither import Slither
 from tempfile import NamedTemporaryFile
-from ast import literal_eval
 from slither.detectors.abstract_detector import AbstractDetector
 from slither.detectors import all_detectors
+from solc_select.solc_select import switch_global_version
 
 
 pattern = r"\(.*?\)"
@@ -22,6 +22,19 @@ def handle(req):
     data = Testing.select().where(Testing.id == s_id).first()
     if not data:
         return "Invalid resource"
+
+    version = re.search("pragma solidity ([\d.^]*)", data.content).group(1)
+    if not version:
+        return "Whether the contract contains the correct version"
+    version = version.replace("^", "")[:3]
+    if version == "0.5":
+        switch_global_version("0.5.16")
+    if version == "0.6":
+        switch_global_version("0.6.11")
+    if version == "0.7":
+        switch_global_version("0.7.6")
+    if version == "0.8":
+        switch_global_version("0.8.16")
 
     with NamedTemporaryFile('w+t', suffix=".sol") as f:
         f.write(data.content)
@@ -45,8 +58,8 @@ def handle(req):
             for function in contract.functions:
                 contract_list.append({
                     "function_name": function.name,
-                    "read": [v.name for v in function.variables_read],
-                    "written": [v.name for v in function.variables_written]
+                    "read": [v.name for v in function.variables_read if v],
+                    "written": [v.name for v in function.variables_written if v]
                 })
             function_list.append({
                 "contract": contract.name,
