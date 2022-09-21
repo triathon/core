@@ -5,6 +5,8 @@ from slither.core.solidity_types import ElementaryType
 from slither.core.solidity_types import UserDefinedType
 
 # a = Slither('BACK.sol')
+# contract.inheritance :superclass
+# contract.derived_contracts ：subclass
 
 def find_real_contract(file_slither):
     # get the real contract, whose constructor executed in contract creation
@@ -14,21 +16,21 @@ def find_real_contract(file_slither):
     if len(contract_list) == 1:
         return contract_list[0]
     else:
-        #TODO build derived map for all contract in contract_list
         # find the contract which has no subclass
-        for one in contract_list:
-            if len(one.inheritance) > inherit_count:
-                real_contract = one
-        # find more specific method to determine the real contract
-    return real_contract
+        target_list = [one for one in contract_list if len(one.derived_contracts)==0]
+        if len(target_list) == 1:
+            return target_list[0]
+        else:
+            print("need new to handle this ")
+            # find more specific method to determine the real contract
 
 def find_only_owner_modifier(contract):
     # find The only owner modifier, which name can be only_admin,only_root
     target_list = []
 
     for modifier in contract.modifiers:
-        #1 ,must check the caller ,ie _MsgSender
-        if '_msgSender' not in modifier.all_internal_calls():
+        #1 ,must check the caller ,ie msg.sender
+        if 'msg.sender' not in modifier.all_slithir_operations():
             continue
         #2,compare with address state var
         for var in modifier._all_state_variables_read:
