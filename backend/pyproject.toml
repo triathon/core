@@ -7,12 +7,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-Django = "^4.1.1"
 djangorestframework = "^3.13.1"
 psycopg2 = "^2.9.3"
 requests = "^2.28.1"
-web3 = "^5.30.0"
+web3 = "^5.31.0"
 djangorestframework-simplejwt = "^5.2.0"
+Django = "<4"
 
 
 [build-system]
