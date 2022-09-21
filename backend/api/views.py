@@ -1,3 +1,4 @@
+import json
 import time
 from copy import deepcopy
 from hashlib import sha1
@@ -25,7 +26,8 @@ class SubmitContractAddress(APIView):
     def post(self, request: Request):
         network, address = request.data['network'], request.data['address']
         contract_meta = fetch_contract_meta(network, address)
-        file_name, src_code = contract_meta['ContractName'], contract_meta['SourceCode'].encode()
+        file_name, src_code = contract_meta['ContractName'], contract_meta['SourceCode']
+        src_code = json.dumps(json.loads(src_code[1:-1])['sources'], ensure_ascii=False).encode()
         hash = sha1(src_code).hexdigest()
         data = {"user": request.user.pk, 'file_name': file_name + ".sol", "date": int(time.time()), "sha1": hash,
                 "file": src_code, 'file_type': 'sol', "contract_address": address, "network": network}
