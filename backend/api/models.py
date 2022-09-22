@@ -33,6 +33,7 @@ class Document(models.Model):
     file = models.BinaryField()
     network = models.TextField(blank=True, null=True)
     contract_address = models.TextField(blank=True, null=True)
+    contract = models.TextField()
     result = models.TextField(default="{}")
     functions = models.TextField(blank=True, null=True)
 

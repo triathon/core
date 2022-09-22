@@ -2,7 +2,6 @@ import json
 from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
 from argparse import Namespace
 from ast import literal_eval
-from .utils.get_contract import get_contract
 from tempfile import NamedTemporaryFile
 from .models.module import Document
 
