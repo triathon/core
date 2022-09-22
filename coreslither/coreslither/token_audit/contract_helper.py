@@ -49,14 +49,14 @@ def find_only_owner_modifier(contract):
         return target_list[0]
 
 
-def find_balance_var(contract):
+def find_balance_mapping(contract):
     # find balance var  from  balanceOf(address)
     balance_of = contract.get_function_from_full_name('balanceOf(address)')
 
-    write_var = balance_of.all_state_variables_read
+    write_var = balance_of.all_state_variables_read()
     target_list = []
     for one in write_var:
-        if one.type == MappingType and one.signature[1]== ['address'] and one.signature[2] == ['uint256']:
+        if type(one.type) == MappingType and one.signature[1]== ['address'] and one.signature[2] == ['uint256']:
             target_list.append(one)
     if len(target_list) >1:
         print("more than one candidate")
@@ -68,28 +68,24 @@ def find_total_supply(contract):
     return total_supply.all_state_variables_read()[0]
 
 
-def collect_state_variable(contract):
-    # collect all the variables which load on block
-    write_var = contract.all_state_variables_written
-
-
-
 def check_black_list(contract):
     #1 store address list
     write_var = contract.all_state_variables_read
     target_list = []
     for one in write_var:
-        if one.type == MappingType and one.signature[1]== ['address'] and one.signature[2] == ['bool']:
+        if type(one.type) == MappingType and one.signature[1]== ['address'] and one.signature[2] == ['bool']:
             target_list.append(one)
+            print("candinate address mapping", one.name)
     #2 only owner can change the state variable
     #3 which function is public
-    only_owner_modifier =  contract.find_only_owner_modifier(contract)
+    
+    only_owner_modifier =  find_only_owner_modifier(contract)
     for one in contract.functions:
         if only_owner_modifier not in one.modifiers:
             continue
         if set(target_list).intersection(set(one.all_state_variables_written())):
+            print("candinate function:",one.name)
             return True
-
 
 
 
