@@ -15,10 +15,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from web3.auto import w3
-
+from django_redis import get_redis_connection
 from api.models import Document, User
 from api.serializers import WriteDocumentSerializer, ReadDocumentSerializer
 from api.tools.contract_helper import fetch_contract_meta
+
+
+rd = get_redis_connection()
 
 
 class SubmitContractAddress(APIView):
@@ -42,8 +45,6 @@ class SubmitContractAddress(APIView):
 
 
 class UploadContractFile(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
 
     def post(self, request: Request):
         file = request.data['file']
