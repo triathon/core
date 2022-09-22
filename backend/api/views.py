@@ -7,6 +7,7 @@ from Crypto.Random import random
 from django.core.files.uploadedfile import SimpleUploadedFile as File
 from django.http import FileResponse
 from eth_account.messages import encode_defunct
+from conf import config
 from hexbytes import HexBytes
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny
@@ -24,6 +25,11 @@ from api.tools.contract_helper import fetch_contract_meta
 rd = get_redis_connection()
 
 
+def set_queue(d_id):
+    rd.lpush(config["coreslither_queue"], d_id)
+    rd.lpush(config["corethril_queue"], d_id)
+
+
 class SubmitContractAddress(APIView):
 
     def post(self, request: Request):
@@ -39,6 +45,7 @@ class SubmitContractAddress(APIView):
         serializer = WriteDocumentSerializer(data=data)
         if serializer.is_valid():
             doc = serializer.save()
+            set_queue(doc.id)
             return Response({"id": doc.id})
         else:
             return Response({"id": None}, status=403)
@@ -49,13 +56,14 @@ class UploadContractFile(APIView):
     def post(self, request: Request):
         file = request.data['file']
         hash = sha1(deepcopy(file).read()).hexdigest()
-        data = {"user": 1, 'file_name': file.name, "date": int(time.time()),
+        data = {"user": request.user.pk, 'file_name': file.name, "date": int(time.time()),
                 "sha1": hash, "file": deepcopy(file).read(), 'file_type': file.name.split('.')[-1],
                 "contract": bytes(file.read()).decode()
                 }
         serializer = WriteDocumentSerializer(data=data)
         if serializer.is_valid():
             doc = serializer.save()
+            set_queue(doc.id)
             return Response({"id": doc.id})
         else:
             return Response({"id": None}, status=403)
@@ -106,3 +114,16 @@ class AuthView(APIView):
             return Response({"token": str(AccessToken.for_user(user))})
         else:
             return Response({"token": None}, status=403)
+
+
+class QueryResult(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        doc_id = request.query_params.get('id', "")
+        document = Document.objects.filter(id=doc_id).first()
+        if document:
+            results = document.result
+            return Response(json.loads(results))
+        return Response({"msg": "No corresponding data"}, status=403)
