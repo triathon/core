@@ -4,7 +4,7 @@ from argparse import Namespace
 from ast import literal_eval
 from .utils.get_contract import get_contract
 from tempfile import NamedTemporaryFile
-from .models.module import Testing
+from .models.module import Document
 
 
 def is_dict(req: str) -> tuple:
@@ -57,7 +57,7 @@ def temporaryFile(data, s_id):
         for sub_issues in issues:
             sub_issues.pop("tx_sequence")
             issues_list.append(sub_issues)
-        data_db = Testing.select().where(Testing.id == s_id).first()
+        data_db = Document.select().where(Document.id == s_id).first()
         if data_db:
             db_result = json.loads(data_db.result)
             db_result["corethril"] = issues_list
@@ -74,8 +74,8 @@ def handle(req):
     """
     s_id = int(req)
     if s_id:
-        data = Testing.select().where(Testing.id == s_id).first()
+        data = Document.select().where(Document.id == s_id).first()
         if not data:
             return "There is no corresponding contract"
-        result = temporaryFile(data.content, s_id)
+        result = temporaryFile(data.contract, s_id)
         return result
