@@ -4,6 +4,8 @@ from slither.core.solidity_types import ArrayType
 from slither.core.solidity_types import ElementaryType
 from slither.core.solidity_types import UserDefinedType
 
+
+from slither.slithir.operations import Return
 # a = Slither('BACK.sol')
 # contract.inheritance :superclass
 # contract.derived_contracts ：subclass
@@ -13,7 +15,7 @@ def find_real_contract(file_slither):
     contract_list = [one for one in file_slither.contracts if not (one.is_interface or one.is_library)]
     real_contract = None
     inherit_count = 0
-    # rule 1 ,default rule 
+    # rule 1 ,default rule
     if len(contract_list) == 1:
         return contract_list[0]
     # rule 2 , no subclass
@@ -22,13 +24,13 @@ def find_real_contract(file_slither):
     if len(subclass_check_list) == 1:
         return subclass_check_list[0]
 
-    import ipdb; ipdb.set_trace()
     # rule 3 , superclass name contains 20
-    
-    superclass_checkou_list =  [one for one in subclass_check_list if 20 in ''.join([one.name for one in  one.inheritance])]
+
+    superclass_checkou_list =  [one for one in subclass_check_list if "20" in ''.join([one.name for one in  one.inheritance])]
     if len(superclass_checkou_list) == 1:
         return superclass_checkou_list[0]
-        
+    return (False,"need more rule to handle such situation")
+
 
 def find_only_owner_modifier(contract):
     # find The only owner modifier, which name can be only_admin,only_root
@@ -36,10 +38,11 @@ def find_only_owner_modifier(contract):
 
     for modifier in contract.modifiers:
         #1 ,must check the caller ,ie msg.sender
-        if 'msg.sender' not in modifier.all_slithir_operations():
+        name_list = [one.name for one in  modifier.all_solidity_variables_read()]
+        if "msg.sender" not in name_list:
             continue
         #2,compare with address state var
-        for var in modifier._all_state_variables_read:
+        for var in modifier.all_state_variables_read():
             if type(var.type)==ElementaryType and var.type.name == "address":
                 target_list.append(modifier)
     if target_list:
