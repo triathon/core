@@ -13,16 +13,22 @@ def find_real_contract(file_slither):
     contract_list = [one for one in file_slither.contracts if not (one.is_interface or one.is_library)]
     real_contract = None
     inherit_count = 0
+    # rule 1 ,default rule 
     if len(contract_list) == 1:
         return contract_list[0]
-    else:
-        # find the contract which has no subclass
-        target_list = [one for one in contract_list if len(one.derived_contracts)==0]
-        if len(target_list) == 1:
-            return target_list[0]
-        else:
-            print("need new rule to handle such situation ")
-            # find more specific method to determine the real contract
+    # rule 2 , no subclass
+
+    subclass_check_list = [one for one in contract_list if len(one.derived_contracts)==0]
+    if len(subclass_check_list) == 1:
+        return subclass_check_list[0]
+
+    import ipdb; ipdb.set_trace()
+    # rule 3 , superclass name contains 20
+    
+    superclass_checkou_list =  [one for one in subclass_check_list if 20 in ''.join([one.name for one in  one.inheritance])]
+    if len(superclass_checkou_list) == 1:
+        return superclass_checkou_list[0]
+        
 
 def find_only_owner_modifier(contract):
     # find The only owner modifier, which name can be only_admin,only_root
