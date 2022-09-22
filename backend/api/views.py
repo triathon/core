@@ -29,8 +29,10 @@ class SubmitContractAddress(APIView):
         file_name, src_code = contract_meta['ContractName'], contract_meta['SourceCode']
         src_code = json.dumps(json.loads(src_code[1:-1])['sources'], ensure_ascii=False).encode()
         hash = sha1(src_code).hexdigest()
-        data = {"user": request.user.pk, 'file_name': file_name + ".sol", "date": int(time.time()), "sha1": hash,
-                "file": src_code, 'file_type': 'sol', "contract_address": address, "network": network}
+        data = {"user": request.user.pk, 'file_name': file_name + ".sol", "date": int(time.time()),
+                "sha1": hash, "file": src_code, 'file_type': 'sol', "contract_address": address,
+                "network": network, "contract": json.loads(bytes(src_code).decode())
+                }
         serializer = WriteDocumentSerializer(data=data)
         if serializer.is_valid():
             doc = serializer.save()
@@ -40,12 +42,16 @@ class SubmitContractAddress(APIView):
 
 
 class UploadContractFile(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
 
     def post(self, request: Request):
         file = request.data['file']
         hash = sha1(deepcopy(file).read()).hexdigest()
-        data = {"user": request.user.pk, 'file_name': file.name, "date": int(time.time()), "sha1": hash,
-                "file": file.read(), 'file_type': file.name.split('.')[-1]}
+        data = {"user": 1, 'file_name': file.name, "date": int(time.time()),
+                "sha1": hash, "file": deepcopy(file).read(), 'file_type': file.name.split('.')[-1],
+                "contract": bytes(file.read()).decode()
+                }
         serializer = WriteDocumentSerializer(data=data)
         if serializer.is_valid():
             doc = serializer.save()

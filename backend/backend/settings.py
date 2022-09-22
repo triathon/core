@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
+from conf import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,11 +78,28 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': "coreprj",
-        'USER': "dbuser",
-        'PASSWORD': "123456",
-        'HOST': "127.0.0.1",
-        'PORT': "5432",
+        'NAME': config.db_name,
+        'USER': config.db_user,
+        'PASSWORD': config.db_password,
+        'HOST': config.db_host,
+        'PORT': config.db_port,
+        # 'OPTIONS': {
+        #     'isolation_level': psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
+        # },
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config.redis,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {"decode_responses": True, "socket_keepalive": False, "max_connections": 8000,
+                                       "socket_connect_timeout": 5,
+                                       },
+            "SERIALIZER": "utils.rediscache.JSONSerializer",
+        }
     }
 }
 

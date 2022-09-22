@@ -1,7 +1,7 @@
 import re
 import json
 import inspect
-from .models.module import Testing, Functional
+from .models.module import Document
 from slither.slither import Slither
 from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
@@ -19,11 +19,11 @@ def handle(req):
     """
     s_id = int(req)
     result_list = []
-    data = Testing.select().where(Testing.id == s_id).first()
+    data = Document.select().where(Document.id == s_id).first()
     if not data:
         return "Invalid resource"
 
-    version = re.search("pragma solidity ([\d.^]*)", data.content)
+    version = re.search("pragma solidity ([\d.^]*)", data.contract)
     if version:
         version = version.group(1).replace("^", "")[:3]
         if version == "0.5":
@@ -36,7 +36,7 @@ def handle(req):
             switch_global_version("0.8.16")
 
     with NamedTemporaryFile('w+t', suffix=".sol") as f:
-        f.write(data.content)
+        f.write(data.contract)
         f.seek(0)
         print("filename:", f.name)
         try:
@@ -49,8 +49,7 @@ def handle(req):
                 return "Missing dependent file"
             return err_str
 
-    data = Functional.select().where(Functional.test_id == s_id).first()
-    if not data:
+    if not data.functions:
         function_list = []
         for contract in slither.contracts:
             contract_list = []
@@ -64,11 +63,9 @@ def handle(req):
                 "contract": contract.name,
                 "function": contract_list
             })
+        data.functions = json.dumps(function_list)
+        data.save()
 
-        Functional.create(
-            test_id=s_id,
-            function=json.dumps(function_list)
-        )
 
     detectors = [getattr(all_detectors, name) for name in dir(all_detectors)]
     detectors = [d for d in detectors if inspect.isclass(d) and issubclass(d, AbstractDetector)]
@@ -85,11 +82,10 @@ def handle(req):
                     if len(match) > 20:
                         description = description.replace(match, "")
                 result_list.append(description)
-    testing = Testing.select().where(Testing.id == s_id).first()
-    if testing:
-        t_result = json.loads(testing.result)
-        t_result["core_slither"] = result_list
-        testing.result = json.dumps(t_result)
-        testing.save()
+
+    t_result = json.loads(data.result)
+    t_result["core_slither"] = result_list
+    data.result = json.dumps(t_result)
+    data.save()
 
     return "Detection completed"

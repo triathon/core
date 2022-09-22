@@ -1,0 +1,8 @@
+{
+  "db_host": "101.251.211.203",
+  "db_port": "5432",
+  "db_name": "core",
+  "db_user": "postgres",
+  "db_password": "abcdos123",
+  "redis": "redis://:octa8lab@101.251.211.204:6379/5"
+}
