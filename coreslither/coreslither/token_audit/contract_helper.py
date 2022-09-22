@@ -21,7 +21,7 @@ def find_real_contract(file_slither):
         if len(target_list) == 1:
             return target_list[0]
         else:
-            print("need new to handle this ")
+            print("need new rule to handle such situation ")
             # find more specific method to determine the real contract
 
 def find_only_owner_modifier(contract):
