@@ -7,6 +7,7 @@ urlpatterns = [
     path('myfiles/', MyFiles.as_view()),
     path('download/', DownloadContractFile.as_view()),
     path('submit/', SubmitContractAddress.as_view()),
+    path('result/', QueryResult.as_view()),
 
     path('user/nonce/', AuthView.as_view()),
     path('user/auth/', AuthView.as_view()),

@@ -97,8 +97,7 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"decode_responses": True, "socket_keepalive": False, "max_connections": 8000,
                                        "socket_connect_timeout": 5,
-                                       },
-            "SERIALIZER": "utils.rediscache.JSONSerializer",
+                                       }
         }
     }
 }

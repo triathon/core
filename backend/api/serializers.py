@@ -41,4 +41,4 @@ class WriteDocumentSerializer(serializers.ModelSerializer):
 class ReadDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        exclude = ['file']
+        exclude = ['file', 'contract', 'result']
