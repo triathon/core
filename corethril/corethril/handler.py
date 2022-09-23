@@ -3,7 +3,7 @@ from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
 from argparse import Namespace
 from ast import literal_eval
 from tempfile import NamedTemporaryFile
-from models.module import Document
+from .models.module import Document
 
 
 def is_dict(req: str) -> tuple:
@@ -78,4 +78,3 @@ def handle(req):
             return "There is no corresponding contract"
         result = temporaryFile(data.contract, s_id)
         return result
-handle(str(8))
