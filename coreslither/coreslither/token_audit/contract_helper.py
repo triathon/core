@@ -95,7 +95,7 @@ def mint_check(contract):
 
 def owner_privilege(contract):
     only_owner = find_only_owner_modifier(contract)
-    owner_function_list = [for one in contract.functions if one.visibility in ['public','external']]
+    owner_function_list = [one for one in contract.functions if one.visibility in ['public','external']]
 
     owner_function_list = [one for one in owner_function_list if only_owner in one.modifiers]
 
