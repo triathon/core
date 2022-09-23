@@ -73,19 +73,18 @@ def handle(req):
         slither.register_detector(detector_cls)
     result = slither.run_detectors()
     for values in result:
-        if values:
-            for value in values:
-                val_dict = dict(value)
-                description = val_dict["description"]
-                matching = re.findall(pattern, description)
-                for match in matching:
-                    if len(match) > 20:
-                        description = description.replace(match, "")
-                result_list.append(description)
+        for value in values:
+            val_dict = dict(value)
+            description = val_dict["description"]
+            matching = re.findall(pattern, description)
+            for match in matching:
+                if len(match) > 20:
+                    description = description.replace(match, "")
+            result_list.append(description)
 
-    t_result = json.loads(data.result)
-    t_result["core_slither"] = result_list
-    data.result = json.dumps(t_result)
+    result = data.result
+    result["core_slither"] = result_list
+    data.result = result
     data.save()
 
     return "Detection completed"

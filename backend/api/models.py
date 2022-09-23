@@ -34,7 +34,7 @@ class Document(models.Model):
     network = models.TextField(blank=True, null=True)
     contract_address = models.TextField(blank=True, null=True)
     contract = models.TextField()
-    result = models.TextField(default="{}")
+    result = models.JSONField(blank=True, null=True, default=dict)
     functions = models.TextField(blank=True, null=True)
 
     def __str__(self):

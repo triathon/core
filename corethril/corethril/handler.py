@@ -3,7 +3,7 @@ from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
 from argparse import Namespace
 from ast import literal_eval
 from tempfile import NamedTemporaryFile
-from .models.module import Document
+from models.module import Document
 
 
 def is_dict(req: str) -> tuple:
@@ -58,9 +58,9 @@ def temporaryFile(data, s_id):
             issues_list.append(sub_issues)
         data_db = Document.select().where(Document.id == s_id).first()
         if data_db:
-            db_result = json.loads(data_db.result)
+            db_result = data_db.result
             db_result["corethril"] = issues_list
-            data_db.result = json.dumps(db_result)
+            data_db.result = db_result
             data_db.save()
         return "Detection succeeded"
     return result
@@ -78,3 +78,4 @@ def handle(req):
             return "There is no corresponding contract"
         result = temporaryFile(data.contract, s_id)
         return result
+handle(str(8))

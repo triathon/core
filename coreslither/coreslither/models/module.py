@@ -2,6 +2,7 @@ from peewee import *
 import json
 from pathlib import Path
 from types import SimpleNamespace as Namespace
+from playhouse.postgres_ext import JSONField
 import random
 
 
@@ -49,7 +50,7 @@ class Document(BaseModel):
     network = TextField(null=True)
     contract_address = TextField(null=True)
     contract = TextField()
-    result = TextField(default="{}")
+    result = JSONField(default=dict)
     functions = TextField(null=True)
 
     class Meta:

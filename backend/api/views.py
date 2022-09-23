@@ -26,8 +26,8 @@ rd = get_redis_connection()
 
 
 def set_queue(d_id):
-    rd.lpush(config["coreslither_queue"], d_id)
-    rd.lpush(config["corethril_queue"], d_id)
+    rd.lpush(config.coreslither_queue, d_id)
+    rd.lpush(config.corethril_queue, d_id)
 
 
 class SubmitContractAddress(APIView):
@@ -125,5 +125,5 @@ class QueryResult(APIView):
         document = Document.objects.filter(id=doc_id).first()
         if document:
             results = document.result
-            return Response(json.loads(results))
+            return Response(results)
         return Response({"msg": "No corresponding data"}, status=403)
