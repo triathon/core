@@ -7,6 +7,8 @@ from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
 from slither.detectors import all_detectors
 from solc_select.solc_select import switch_global_version
+from .token_audit.contract_helper import find_real_contract,check_black_list
+from .token_audit.contract_helper import check_selfdestruct,check_owner_privilege
 
 
 pattern = r"\(.*?\)"
@@ -64,7 +66,7 @@ def handle(req):
                 "function": contract_list
             })
         data.functions = json.dumps(function_list)
-        data.save()
+        
 
 
     detectors = [getattr(all_detectors, name) for name in dir(all_detectors)]
@@ -84,7 +86,17 @@ def handle(req):
 
     result = data.result
     result["core_slither"] = result_list
+
+
+    token_result={}
+    real_contract = find_real_contract(slither)
+    if real_contract and real_contract.is_erc20():
+        token_result['is_blacklist'] = check_black_list(real_contract)
+        token_result['is_selfdestruct'] = check_selfdestruct(real_contract)[0]
+        token_result['is_delegatecall'] = check_selfdestruct(real_contract)[1]
+        token_result['is_owner_privilege'] = check_owner_privilege(real_contract)
+
+    data.result['token_audit'] = token_result
     data.result = result
     data.save()
-
     return "Detection completed"

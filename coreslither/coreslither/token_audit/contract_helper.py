@@ -3,8 +3,14 @@ from slither.core.solidity_types import MappingType
 from slither.core.solidity_types import ArrayType
 from slither.core.solidity_types import ElementaryType
 from slither.core.solidity_types import UserDefinedType
-
-
+from slither.slithir.operations import (
+    LowLevelCall,
+    HighLevelCall,
+    Transfer,
+    Send,
+    SolidityCall,
+)
+from slither.core.declarations import SolidityFunction, Function
 from slither.slithir.operations import Return
 # a = Slither('BACK.sol')
 # contract.inheritance :superclass
@@ -78,7 +84,7 @@ def check_black_list(contract):
             print("candinate address mapping", one.name)
     #2 only owner can change the state variable
     #3 which function is public
-    
+
     only_owner_modifier =  find_only_owner_modifier(contract)
     for one in contract.functions:
         if only_owner_modifier not in one.modifiers:
@@ -93,7 +99,7 @@ def check_black_list(contract):
 def mint_check(contract):
     ...
 
-def owner_privilege(contract):
+def check_owner_privilege(contract):
     only_owner = find_only_owner_modifier(contract)
     owner_function_list = [one for one in contract.functions if one.visibility in ['public','external']]
 
@@ -104,3 +110,24 @@ def owner_privilege(contract):
     if privilege_count > 20:
         # temp set to 20, need more data to confirm
         return True
+
+def check_selfdestruct(contract):
+    can_selfdestruct = False
+    can_delegatecall = False
+
+    for function in contract.functions:
+        for ir in function.slithir_operations:
+            if isinstance(ir, (LowLevelCall, HighLevelCall, Send, Transfer)) and ir.call_value:
+                can_send_eth = True
+            if isinstance(ir, SolidityCall) and ir.function in [
+                    SolidityFunction("suicide(address)"),
+                    SolidityFunction("selfdestruct(address)"),]:
+                can_selfdestruct = True
+            if isinstance(ir, SolidityCall) and ir.function == SolidityFunction("ecrecover(bytes32,uint8,bytes32,bytes32)"):
+                has_ecrecover = True
+            if isinstance(ir, LowLevelCall) and ir.function_name in [
+                "delegatecall",
+                "callcode",
+            ]:
+                can_delegatecall = True
+    return can_selfdestruct ,can_delegatecall
