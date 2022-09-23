@@ -1,7 +1,7 @@
 import re
 import json
 import inspect
-from models.module import Document
+from .models.module import Document
 from slither.slither import Slither
 from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
@@ -73,16 +73,15 @@ def handle(req):
     result = slither.run_detectors()
     for values in result:
         for value in values:
-            val_dict = value
-            description = val_dict["description"]
+            description = value["description"]
             matching = re.findall(pattern, description)
             for match in matching:
                 if len(match) > 20:
                     description = description.replace(match, "")
             result_list.append({
-                "check": val_dict["check"],
-                "impact": val_dict["impact"],
-                "confidence": val_dict["confidence"],
+                "check": value["check"],
+                "impact": value["impact"],
+                "confidence": value["confidence"],
                 "description": description
             })
 

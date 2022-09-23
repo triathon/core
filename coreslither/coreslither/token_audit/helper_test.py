@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from contract_helper import find_real_contract
-from contract_helper import find_only_owner_modifier
-from contract_helper import find_balance_mapping
-from contract_helper import find_total_supply
-from contract_helper import check_black_list
+from .contract_helper import find_real_contract
+from .contract_helper import find_only_owner_modifier
+from .contract_helper import find_balance_mapping
+from .contract_helper import find_total_supply
+from .contract_helper import check_black_list
 
 from slither import Slither
 
