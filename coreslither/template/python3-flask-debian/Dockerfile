@@ -7,7 +7,7 @@ RUN chmod +x /usr/bin/fwatchdog
 ARG ADDITIONAL_PACKAGE
 # Alternatively use ADD https:// (which will not be cached by Docker builder)
 
-RUN apt-get -qy update && apt-get -qy install gcc python3-dev libpq-dev make ${ADDITIONAL_PACKAGE}
+RUN apt-get -qy update && apt-get -qy install gcc python3-dev libpq-dev git make ${ADDITIONAL_PACKAGE}
 # Add non root user
 RUN addgroup --system app && adduser app --system --ingroup app
 RUN chown app /home/app

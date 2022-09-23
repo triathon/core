@@ -1,15 +1,14 @@
 import re
 import json
 import inspect
-from .models.module import Document
+from models.module import Document
 from slither.slither import Slither
 from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
 from slither.detectors import all_detectors
 from solc_select.solc_select import switch_global_version
-from .token_audit.contract_helper import find_real_contract,check_black_list
-from .token_audit.contract_helper import check_selfdestruct,check_owner_privilege
-
+from token_audit.contract_helper import find_real_contract, check_black_list
+from token_audit.contract_helper import check_selfdestruct, check_owner_privilege
 
 pattern = r"\(.*?\)"
 
@@ -66,8 +65,6 @@ def handle(req):
                 "function": contract_list
             })
         data.functions = json.dumps(function_list)
-        
-
 
     detectors = [getattr(all_detectors, name) for name in dir(all_detectors)]
     detectors = [d for d in detectors if inspect.isclass(d) and issubclass(d, AbstractDetector)]
@@ -76,21 +73,25 @@ def handle(req):
     result = slither.run_detectors()
     for values in result:
         for value in values:
-            val_dict = dict(value)
+            val_dict = value
             description = val_dict["description"]
             matching = re.findall(pattern, description)
             for match in matching:
                 if len(match) > 20:
                     description = description.replace(match, "")
-            result_list.append(description)
+            result_list.append({
+                "check": val_dict["check"],
+                "impact": val_dict["impact"],
+                "confidence": val_dict["confidence"],
+                "description": description
+            })
 
     result = data.result
     result["core_slither"] = result_list
 
-
-    token_result={}
+    token_result = {}
     real_contract = find_real_contract(slither)
-    if real_contract and real_contract.is_erc20():
+    if type(real_contract) != tuple and real_contract.is_erc20():
         token_result['is_blacklist'] = check_black_list(real_contract)
         token_result['is_selfdestruct'] = check_selfdestruct(real_contract)[0]
         token_result['is_delegatecall'] = check_selfdestruct(real_contract)[1]
