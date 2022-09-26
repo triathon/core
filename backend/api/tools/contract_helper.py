@@ -19,8 +19,8 @@ def fetch_contract_meta(network, address):
               "apikey": apikey[network],
               }
     rst = session.get(endpoint[network], params=params, headers=headers).json()
+    import ipdb; ipdb.set_trace()
     if int(rst['status']) == 1:
         return rst['result'][0]
 
-# get_contract_source_code("bsc", "0x6EcF4F241Cb0bC3455821F69CA9bDC7B0E1e0C57")
-# print(fetch_contract_meta("eth", "0xdAC17F958D2ee523a2206206994597C13D831ec7"))
+#print(fetch_contract_meta("bsc", "0x00000000bbe723D51C3980cDBc84b1F94d700119"))

@@ -1,6 +1,7 @@
 # from django.core.validators import FileExtensionValidator
 # from django.contrib.auth.validators import UnicodeUsernameValidator
 
+from pyexpat import model
 from Crypto.Random import random
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -39,3 +40,21 @@ class Document(models.Model):
 
     def __str__(self):
         return self.file_name
+
+
+
+class OnlineContract(models.Model):
+    class NetWork(models.TextChoices):
+        bsc = "bsc"
+        eth = "eth"
+    address = models.CharField(max_length=40)
+    result = models.JSONField(blank=True, null=True, default=dict)
+    functions = models.TextField(blank=True, null=True)
+    contract = models.TextField()
+
+
+class UploadContract(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    result = models.JSONField(blank=True, null=True, default=dict)
+    functions = models.TextField(blank=True, null=True)
+    contract = models.TextField()
