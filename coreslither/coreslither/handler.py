@@ -7,8 +7,9 @@ from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
 from slither.detectors import all_detectors
 from solc_select.solc_select import switch_global_version
-from token_audit.contract_helper import find_real_contract, check_black_list
-from token_audit.contract_helper import check_selfdestruct, check_owner_privilege
+from .token_audit.contract_helper import find_real_contract, check_black_list
+from .token_audit.contract_helper import check_selfdestruct, check_owner_privilege
+
 
 pattern = r"\(.*?\)"
 
