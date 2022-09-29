@@ -1,7 +1,6 @@
 # from django.core.validators import FileExtensionValidator
 # from django.contrib.auth.validators import UnicodeUsernameValidator
 
-from pyexpat import model
 from Crypto.Random import random
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -16,16 +15,12 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     wallet_address = models.CharField(max_length=42, unique=True)
     nonce = models.CharField(max_length=6, default=make_nonce)
-
+    
     def __str__(self):
         return self.wallet_address
 
 
 class Document(models.Model):
-    class NetWork(models.TextChoices):
-        bsc = "bsc"
-        eth = "eth"
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     file_name = models.CharField(max_length=255)
     file_type = models.CharField(max_length=5)
@@ -37,16 +32,16 @@ class Document(models.Model):
     contract = models.TextField()
     result = models.JSONField(blank=True, null=True, default=dict)
     functions = models.TextField(blank=True, null=True)
-
+    
     def __str__(self):
         return self.file_name
-
 
 
 class OnlineContract(models.Model):
     class NetWork(models.TextChoices):
         bsc = "bsc"
         eth = "eth"
+    
     address = models.CharField(max_length=40)
     result = models.JSONField(blank=True, null=True, default=dict)
     functions = models.TextField(blank=True, null=True)
