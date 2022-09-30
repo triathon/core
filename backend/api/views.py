@@ -31,7 +31,9 @@ def set_queue(d_id):
 
 
 class SubmitContractAddress(APIView):
-    
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request: Request):
         network, address = request.data['network'], request.data['address']
         contract_meta = fetch_contract_meta(network, address)
@@ -43,7 +45,7 @@ class SubmitContractAddress(APIView):
         else:
             src_txt = src_code
             src_bin = src_code.encode()
-        hash = sha1(src_code).hexdigest()
+        hash = sha1(src_bin).hexdigest()
         data = {"user": request.user.pk, 'file_name': file_name + ".sol", "date": int(time.time()),
                 "sha1": hash, "file": src_bin, 'file_type': 'sol', "contract_address": address,
                 "network": network, "contract": src_txt
