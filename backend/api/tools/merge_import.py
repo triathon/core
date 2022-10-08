@@ -1,41 +1,49 @@
-# Fix imports path for all solidity files in the `--root` directory
-# Use this script to make the source code compilable. Assuming all source code are in the root directory.
-
 import re
 import os
+from merge_contract import merger_contract
 
-def build_import_graph(sol_dir):
-    resolve_dict = {}
-    sols =  [os.path.join(sol_dir, f) for f in os.listdir(sol_dir) if f.endswith('.sol')]
-    for file_path in sols:
-        with open(file_path, 'r') as f:
-            import_file_list = []
-            for line in f:
-                match = re.search(r'''['"].*/(\w+\.sol)['"];''', line)
-                if match:
-                    import_file = match.group(1)
-                    import_file_list.append(import_file)
-        resolve_dict[file_path] = import_file_list
 
-    file_list = list(resolve_dict.keys())
-    with open("target.sol",'a+') as target:
-        while len(file_list):
-            write_file_list = [k for k,v in resolve_dict.items() if len(v) ==0]
-            for file_path in write_file_list:
-                with open(file_path, 'r') as sol_file:
-                    for line in sol_file:
-                        if not line.startswith('import'):
-                            target.write(line)
-                file_list.remove(file_path)
-                resolve_dict.pop(file_path)
-                for k, v in resolve_dict.items():
-                    file_name = file_path.split('/')[-1]
-                    if file_name in v:
-                        v.remove(file_name)
+def search_sol_by_filename(name, sols):
+    file_name = lambda p: p.split(os.path.sep)[-1]
+    try:
+        return next(file_name(f) for f in sols if file_name(f)[6:] == name)
+    except StopIteration:
+        return None
 
+
+def fix_import_line(line, sols):
+    match = re.search(r'''['"].*/(\w+\.sol)['"];''', line)
+    if match:
+        sol = match.group(1)
+        replacement = search_sol_by_filename(sol, sols)
+        if replacement:
+            n_line = f'import "./{replacement}";\n'
+            return n_line
+
+    return line
+
+
+def fix_import(sol, sols):
+    with open(sol, 'r') as f:
+        lines = list(f.readlines())
+    updated_lines = [fix_import_line(line, sols) for line in lines]
+    if lines != updated_lines:
+        with open(sol, 'w') as f:
+            f.write(''.join(updated_lines))
+
+
+def handle_import(file_path, main_file):
+    """
+    :param file_path: contract path
+    :param main_file: contract master file
+    :return: merge contract
+    """
+    sols = [os.path.join(file_path, f) for f in os.listdir(file_path) if f.endswith('.sol')]
+    for f in sols:
+        fix_import(f, sols)
+    return merger_contract(file_path, main_file)
 
 
 if __name__ == '__main__':
-    root = "./multi_file_contract"
-
-    build_import_graph(root)
+    data = handle_import("/Users/luwei/Documents/luwei_code/BafenLiang/L4/etherscan-contract-crawler/bsc_contracts/0x00c49A0E9F793Eaa605bbE153fceBc031a605a2b_LockBurnBridge", "01_11_LockBurnBridge.sol")
+    print(data)
