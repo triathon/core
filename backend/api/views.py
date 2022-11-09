@@ -19,7 +19,7 @@ from web3.auto import w3
 
 from api.models import Document, User
 from api.serializers import WriteDocumentSerializer, ReadDocumentSerializer
-from api.tools.contract_helper import fetch_contract_meta
+from api.tools.contract_helper import fetch_contract_meta, write_contract
 from conf import config
 
 rd = get_redis_connection()
@@ -39,8 +39,7 @@ class SubmitContractAddress(APIView):
         contract_meta = fetch_contract_meta(network, address)
         file_name, src_code = contract_meta['ContractName'], contract_meta['SourceCode']
         if src_code[:4] == '{{\r\n':
-            # todo: merge sol files
-            src_txt = src_code
+            src_txt = write_contract(src_code)
             src_bin = json.dumps(json.loads(src_code[1:-1])['sources'], ensure_ascii=False).encode()
         else:
             src_txt = src_code
@@ -56,11 +55,14 @@ class SubmitContractAddress(APIView):
             set_queue(doc.id)
             return Response({"id": doc.id})
         else:
+            print(serializer.errors, 'error')
             return Response({"id": None}, status=403)
 
 
 class UploadContractFile(APIView):
-    
+    """
+    Uploading contract files Api
+    """
     def post(self, request: Request):
         file = request.data['file']
         hash = sha1(deepcopy(file).read()).hexdigest()
@@ -78,7 +80,10 @@ class UploadContractFile(APIView):
 
 
 class DownloadContractFile(APIView):
-    
+    """
+    Download the contract file api
+    """
+
     def get(self, request: Request):
         doc = Document.objects.get(pk=request.query_params['id'])
         if doc.user == request.user:
@@ -91,7 +96,7 @@ class MyFiles(ListAPIView):
     queryset = Document.objects.defer("file")
     serializer_class = ReadDocumentSerializer
     ordering = ['-id']
-    
+
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
 
@@ -99,25 +104,27 @@ class MyFiles(ListAPIView):
 class AuthView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
-    
+
     def get(self, request):
         address = request.query_params.get('address')
         if not address:
             return Response({'code': 403, 'message': 'wallet address is needed'}, status=403)
-        user, created = User.objects.get_or_create(wallet_address=address)
+        user = User.objects.filter(wallet_address=address).first()
+        if not user:
+            user = User.objects.create(wallet_address=address, username=address)
         return Response({'nonce': user.nonce})
-    
+
     def post(self, request):
         signature = request.data['signature']
         address = request.data['address']
-        
+
         user, created = User.objects.get_or_create(wallet_address=address)
         msg = encode_defunct(text=f'Welcome login with nonce={user.nonce}')
         rec_address = w3.eth.account.recover_message(msg, signature=HexBytes(signature))
-        
+
         user.nonce = random.randint(100000, 1000000)
         user.save()
-        
+
         if address == rec_address:
             return Response({"token": str(AccessToken.for_user(user))})
         else:
@@ -127,7 +134,7 @@ class AuthView(APIView):
 class QueryResult(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
-    
+
     def get(self, request):
         doc_id = request.query_params.get('id', "")
         document = Document.objects.filter(id=doc_id).first()
