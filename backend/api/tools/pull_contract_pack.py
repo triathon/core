@@ -43,7 +43,7 @@ def pull_pack(pack_name, prefix):
     """
     npm_pack_path = prefix
     npm_prefix = '--prefix=' + npm_pack_path
-    npm_install_cmd = "npm install {} " + npm_prefix
+    npm_install_cmd = "npm install {} " + npm_prefix + " --registry=http://registry.npmmirror.com"
 
     # Install the dependencies in the same directory as the current python file
     if not os.path.exists(npm_pack_path + "/package.json") and not os.path.exists(npm_pack_path + "\package.json"):

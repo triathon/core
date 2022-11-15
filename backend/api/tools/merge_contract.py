@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import shutil
 
 from api.tools.pull_contract_pack import pull_pack
 
@@ -31,10 +32,11 @@ class Merge(object):
         """
         spdx_text = "// SPDX-License-Identifier: MIT \n"
         pragma_text = f"pragma solidity ^{self.version};\n"
-        result = spdx_text + pragma_text + self.merger_code(os.path.abspath(self.path+self.main_file), [], [])
+
+        _, code = self.merger_code(os.path.abspath(self.path+self.main_file), [], [])
+        result = spdx_text + pragma_text + code
 
         # del node_modules
-        import shutil
         shutil.rmtree(self.prefix)
 
         return result
@@ -82,7 +84,7 @@ class Merge(object):
             raise Exception("Compiler version is not a valid format")
         self.version = version
 
-    def merger_code(self, current_file, processed, npm_packs):
+    def merger_code(self, current_file, processed, npm_packs, a=1):
         """
 
         :param current_file:
@@ -92,7 +94,14 @@ class Merge(object):
         """
         buffer = []
         if current_file.split('/')[-1] in processed:
-            return ''
+            return processed, ''
+
+        # if len(processed) == 16:
+        #     a += 1
+        #     if a == 5:
+        #         raise
+        #     print(f"-------------- \n processed: {len(processed)}")
+        #     print(f"current_file: {current_file}")
 
         with open(current_file, "r+") as f:
             for line in f:
@@ -101,12 +110,16 @@ class Merge(object):
                     continue
                 # Add additional code
                 if "import" in line[:6]:
+                    # if len(processed) == 16:
+                    #     print(f"line: {line}")
                     introduce_file, npm_packs = self.get_import_path(line, current_file, npm_packs)
-                    buffer.append(self.merger_code(introduce_file, processed, npm_packs))
-                    processed.append(introduce_file.split('/')[-1])
+                    processed, code = self.merger_code(introduce_file, processed, npm_packs, a)
+                    if code:
+                        buffer.append(code)
+                        processed.append(introduce_file.split('/')[-1])
                 else:
                     buffer.append(line)
-        return ''.join(buffer)
+        return processed, ''.join(buffer)
 
     def get_import_path(self, line, current_file, npm_packs):
         # Import network package processing

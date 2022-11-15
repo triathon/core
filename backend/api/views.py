@@ -4,6 +4,7 @@ import sys
 import time
 import traceback
 import zipfile
+import shutil
 from hashlib import sha1
 
 from Crypto.Random import random
@@ -85,7 +86,11 @@ class UploadContractFile(APIView):
                 contract_path = save_path
                 if not main_file:
                     main_file = upload_file_name
-                os.mkdir(save_path)
+                try:
+                    os.mkdir(save_path)
+                except FileNotFoundError:
+                    os.mkdir(curPath + os.path.sep + "upload_contracts")
+                    os.mkdir(save_path)
                 with open(save_path + os.path.sep + upload_file_name, 'x', encoding='utf-8') as f:
                     f.write(str(upload_file.read(), encoding="utf-8"))
                     f.close()
@@ -106,7 +111,6 @@ class UploadContractFile(APIView):
             contract = contract.encode("utf-8")
 
             # del zip file
-            import shutil
             shutil.rmtree(save_path)
 
             # save to db
