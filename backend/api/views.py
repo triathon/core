@@ -1,6 +1,9 @@
 import json
+import os
+import sys
 import time
-from copy import deepcopy
+import traceback
+import zipfile
 from hashlib import sha1
 
 from Crypto.Random import random
@@ -21,6 +24,7 @@ from api.models import Document, User
 from api.serializers import WriteDocumentSerializer, ReadDocumentSerializer
 from api.tools.contract_helper import fetch_contract_meta, write_contract
 from conf import config
+from api.tools.merge_contract import Merge
 
 rd = get_redis_connection()
 
@@ -39,7 +43,7 @@ class SubmitContractAddress(APIView):
         contract_meta = fetch_contract_meta(network, address)
         file_name, src_code = contract_meta['ContractName'], contract_meta['SourceCode']
         if src_code[:4] == '{{\r\n':
-            src_txt = write_contract(src_code)
+            src_txt = write_contract(file_name, src_code)
             src_bin = json.dumps(json.loads(src_code[1:-1])['sources'], ensure_ascii=False).encode()
         else:
             src_txt = src_code
@@ -64,19 +68,67 @@ class UploadContractFile(APIView):
     Uploading contract files Api
     """
     def post(self, request: Request):
-        file = request.data['file']
-        hash = sha1(deepcopy(file).read()).hexdigest()
-        data = {"user": request.user.pk, 'file_name': file.name, "date": int(time.time()),
-                "sha1": hash, "file": deepcopy(file).read(), 'file_type': file.name.split('.')[-1],
-                "contract": bytes(file.read()).decode()
-                }
-        serializer = WriteDocumentSerializer(data=data)
-        if serializer.is_valid():
-            doc = serializer.save()
-            set_queue(doc.id)
-            return Response({"id": doc.id})
-        else:
-            return Response({"id": None}, status=403)
+        upload_file = request.data.get("file")
+        upload_file_name = upload_file.name
+        main_file = request.data.get("main_file")
+        format_zip = upload_file_name.endswith(".zip")
+        format_sol = upload_file_name.endswith(".sol")
+        if not format_zip and not format_sol:
+            return Response({"code": 301, "msg": "The file is not in zip/sol format"})
+
+        curPath = sys.path[0]
+        date = int(time.time())
+        save_path = curPath + os.path.sep + "upload_contracts" + os.path.sep + str(date)
+        try:
+            # save file
+            if format_sol:
+                contract_path = save_path
+                if not main_file:
+                    main_file = upload_file_name
+                os.mkdir(save_path)
+                with open(save_path + os.path.sep + upload_file_name, 'x', encoding='utf-8') as f:
+                    f.write(str(upload_file.read(), encoding="utf-8"))
+                    f.close()
+            else:
+                contract_path = save_path + os.path.sep + upload_file_name.split(".")[0]
+
+                # save zip file
+                f = zipfile.ZipFile(upload_file, "r")
+                if len(f.namelist()) < 2:
+                    return Response({"code": 302, "msg": "Empty folder"})
+                for file in f.namelist():
+                    f.extract(file, save_path)
+                f.close()
+
+            # merge file
+            merge = Merge(contract_path, main_file)
+            contract = merge.start()
+            contract = contract.encode("utf-8")
+
+            # del zip file
+            import shutil
+            shutil.rmtree(save_path)
+
+            # save to db
+            data = {
+                "user": request.user.pk,
+                "file_name": main_file,
+                "date": date,
+                "sha1": sha1(contract).hexdigest(),
+                "file": contract,
+                "file_type": main_file.split('.')[-1],
+                "contract": bytes(contract).decode()
+            }
+            serializer = WriteDocumentSerializer(data=data)
+            if serializer.is_valid():
+                doc = serializer.save()
+                set_queue(doc.id)
+                return Response({"id": doc.id})
+            else:
+                return Response({"id": None}, status=403)
+        except:
+            print(traceback.print_exc())
+            return Response({"code": 500, "msg": "Server error, please try again"}, status=500)
 
 
 class DownloadContractFile(APIView):
