@@ -32,7 +32,7 @@ def fetch_contract_meta(network, address):
         return rst['result'][0]
 
 
-def write_contract(src_code):
+def write_contract(file_name, src_code):
     """
     Merge network multi-file code
     :param src_code:
@@ -77,7 +77,10 @@ def write_contract(src_code):
         return '\n'.join(_buffer), is_pragma_, is_spdx_
 
     buffer = []
-    code, is_pragma, is_spdx = flatimport(next(iter(sols.values())))
+    first_file = sols.get(file_name+".sol")
+    if not first_file:
+        first_file = next(iter(sols.values()))
+    code, is_pragma, is_spdx = flatimport(first_file)
     buffer.append(code)
 
     return '\n'.join(buffer)
