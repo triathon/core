@@ -1,9 +1,12 @@
 import json
+import time
+
+import redis
 from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
 from argparse import Namespace
 from ast import literal_eval
 from tempfile import NamedTemporaryFile
-from .models.module import Document
+from models.module import Document, DATA
 
 
 def is_dict(req: str) -> tuple:
@@ -78,3 +81,30 @@ def handle(req):
             return "There is no corresponding contract"
         result = temporaryFile(data.contract, s_id)
         return result
+
+
+def run():
+    print("thril start of testing...")
+    conn_pool = redis.ConnectionPool(
+        host=DATA.redis_host,
+        port=DATA.redis_port,
+        password=DATA.redis_password,
+        decode_responses=True,
+        db=DATA.redis_db,
+    )
+    rc = redis.Redis(connection_pool=conn_pool)
+
+    while True:
+        id_list = rc.lrange(DATA.task_queue, 0, 4)
+        if id_list:
+            contract_id = rc.rpop(DATA.task_queue)
+            result = handle(contract_id)
+            print("db contract index {}, {}".format(contract_id, result))
+            time.sleep(2)
+        else:
+            print("wait...")
+            time.sleep(5)
+
+
+if __name__ == '__main__':
+    run()

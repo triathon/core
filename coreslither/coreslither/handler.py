@@ -1,14 +1,18 @@
 import re
 import json
 import inspect
-from .models.module import Document
+import time
+
+import redis
+
+from models.module import Document, DATA
 from slither.slither import Slither
 from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
 from slither.detectors import all_detectors
 from solc_select.solc_select import switch_global_version
-from .token_audit.contract_helper import find_real_contract, check_black_list
-from .token_audit.contract_helper import check_selfdestruct, check_owner_privilege
+from token_audit.contract_helper import find_real_contract, check_black_list
+from token_audit.contract_helper import check_selfdestruct, check_owner_privilege
 
 
 pattern = r"\(.*?\)"
@@ -101,3 +105,29 @@ def handle(req):
     data.result = result
     data.save()
     return "Detection completed"
+
+
+def run():
+    print("slither start of testing...")
+    conn_pool = redis.ConnectionPool(
+        host=DATA.redis_host,
+        port=DATA.redis_port,
+        password=DATA.redis_password,
+        decode_responses=True,
+        db=DATA.redis_db,
+    )
+    rc = redis.Redis(connection_pool=conn_pool)
+    while True:
+        id_list = rc.lrange(DATA.task_queue, 0, 4)
+        if id_list:
+            contract_id = rc.rpop(DATA.task_queue)
+            result = handle(contract_id)
+            print("db contract index {}, {}".format(contract_id, result))
+            time.sleep(2)
+        else:
+            print("wait...")
+            time.sleep(5)
+
+
+if __name__ == '__main__':
+    run()
