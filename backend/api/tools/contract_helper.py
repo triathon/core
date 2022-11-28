@@ -5,8 +5,8 @@ import requests
 
 # 使用contact@triathon.space注册，密码见mainstage项目
 # api请求5个/s
-apikey = {"bsc": "QVZW45BHPQUXBTNBH7HPZ558C4BM2NAR7P",
-          "eth": "22CIFTRV8R4VYDDC3N2YT2QIAYZAJ9Z4T8"}
+apikey = {"bsc": "",
+          "eth": ""}
 endpoint = {"bsc": "https://api.bscscan.com/api",
             "eth": "https://api.etherscan.io/api"}
 

@@ -66,6 +66,12 @@ path: corethril/corethril/config.conf
   "task_queue": "corethril"
 }
 ```
+bsc/eth apikey配置
+path: backend/api/tools/contract_helper.py
+```
+apikey = {"bsc": "",
+          "eth": ""}
+```
 
 
 
