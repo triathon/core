@@ -1,0 +1,16 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://101.42.119.16:31112
+functions:
+  corethril:
+    lang: python3-flask-debian
+    handler: ./coresmartian
+    image: xiaowei6688/corethril:latest
+    environment:
+      write_debug: true
+      write_timeout: 15m
+      read_timeout: 15m
+      exec_timeout: 15m
+      max_inflight: 10
+      healthcheck_interval: 5

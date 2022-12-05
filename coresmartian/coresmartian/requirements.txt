@@ -1,0 +1,5 @@
+redis
+certifi
+solc-select==0.2.0
+peewee==3.15.2
+psycopg2==2.9.3

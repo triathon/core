@@ -33,6 +33,7 @@ rd = get_redis_connection()
 def set_queue(d_id):
     rd.lpush(config.coreslither_queue, d_id)
     rd.lpush(config.corethril_queue, d_id)
+    rd.lpush(config.coresmartian_queue, d_id)
 
 
 class SubmitContractAddress(APIView):
