@@ -1,34 +1,37 @@
-# core
+## Core平台介绍
 
-Core平台的核心服务，基于Serverless架构，以Kubernetes为基础生成的函数式容器服务。
+Core是核心基础设施平台，提供能力与数据处理，向Triathon不断赋能。
+Core平台的核心特点在于：我们融合了fuzzing-test的测试方法，以及混沌工程（实验）的概念，重新定义了区块链安全测试的方式。致力于建立了安全高效的web3测试环境。
 
-基于OpenFaaS的无服务计算WatchDog，进行模块可插拔和弹性伸缩；在OpenFaaS内部为一个个运行着的合约检测服务，每个检测服务都有着对应着的API，将路径指定为
-URL的一部分，每个功能都为Kubernetes的服务，具有多个副本。就像任何其他Kubernetes工作负载
-一样，它可以扩展和所见并处理多个并发请求并方便未来升级的去中心化云原生服务中。
+## “CORE”平台特点
 
+（将会在未来会不断更新）
 
-**Core_slither**：Contract test items slither structure
+1. （测试）工具建设：集合了各类测试工具，且未来将测试能力以API形式封装，提供给相关三方（如安全白帽）
+2. API建设：CORE不断端漏洞转化成测试手段，并且变成API输出
+3. 开发者管理：生态开发者基于API 生成全新NFT（测试服务）；或基于API应用后发现的漏洞提交
+4. 漏洞转化 ：漏洞平台是 CORE 持续能力建设的一个核心组成
 
-**Corethril**：Contract test items mythril structure
+## 安装
 
-**CoreSmartian**：Contract test items Smartian fuzzy
+### 环境安装
 
-## 安装使用
-
-###环境安装启动
 ```
 docker build -t core:v1 -f DockerfileDev .
 
 docker run -it --name core -p 8000:8000 -v 宿主机代码目录:/opt/project core:v1
 
 ```
+
 redis 6.2.6启动
 
 postgres启动
 
-#### 一. 配置
+#### 配置
+
 django服务配置
 path: backend/conf/conf.json
+
 ```
 {
   "db_host": "",
@@ -41,8 +44,10 @@ path: backend/conf/conf.json
   "corethril_queue": "corethril"
 }
 ```
+
 coreslither配置
 path: coreslither/coreslither/config.conf
+
 ```
 {
   "db_host": "",
@@ -57,8 +62,10 @@ path: coreslither/coreslither/config.conf
   "task_queue": "coreslither"
 }
 ```
+
 corethril配置
 path: corethril/corethril/config.conf
+
 ```
 {
   "db_host": "",
@@ -73,6 +80,7 @@ path: corethril/corethril/config.conf
   "task_queue": "corethril"
 }
 ```
+
 coreSmartian配置
 path: coresmartian/coresmartian/config.conf
 
@@ -93,6 +101,7 @@ path: coresmartian/coresmartian/config.conf
 
 bsc/eth apikey配置
 path: backend/api/tools/contract_helper.py
+
 ```
 apikey = {"bsc": "",
           "eth": ""}
@@ -100,16 +109,18 @@ apikey = {"bsc": "",
 
 
 
-####二. api服务启动
+#### api服务启动
+
 ```
 docker exec -it core bash
 
 nohup python backend/manage.py runserver 0:8000 >/opt/project/core-log/api 2>&1 &
 ```
 
-#### 三. 检测服务启动
+#### 检测服务启动
 
-1.python启动
+##### python启动
+
 ```
 nohup python coreslither/coreslither/handler.py >/opt/project/core-log/slither 2>&1 &
 nohup python corethril/corethril/handler.py >/opt/project/core-log/thril 2>&1 &
@@ -117,16 +128,21 @@ nohup python coresmartian/coresmartian/handler.py >/opt/project/core-log/smartia
 
 ```
 
-2.faas-启动
+##### faas-启动
+
 ```
 ...
 ```
 
-#### 三. api使用
+## 使用
+
 apifox
 链接: https://www.apifox.cn/apidoc/shared-979b9088-fd6a-4e65-8c96-c048c3edd188  访问密码 : x849iT7T 
 
 1. 上传合约文件
-    1. 本地文件上传
-    2. 合约地址上传
+   1. 本地文件上传
+   2. 合约地址上传
 2. 查看检测结果
+
+---
+Triathon官方邮箱：triathonspace@gmail.com
