@@ -1,20 +1,16 @@
-## Core平台介绍
+## What is CORE platform?
+As a vital infrastructure platform, CORE empowers Triathon by providing data processing service and other capabilitties continuously.
+In the CORE platform, we incorporate the fuzzing-test testing method and the concept of chaos engineering (experimental) to redefine the way of blockchain security testing. We're committed to establishing a safe and efficient web3 testing environment.
 
-Core是核心基础设施平台，提供能力与数据处理，向Triathon不断赋能。
-Core平台的核心特点在于：我们融合了fuzzing-test的测试方法，以及混沌工程（实验）的概念，重新定义了区块链安全测试的方式。致力于建立了安全高效的web3测试环境。
+## Main utilities of “CORE”
+ (The platform will be constantly updated in the future.)
+1. (Testing) Tool building: a collection of various testing tools. Testing capabilities will be packaged in the form of API and be provided to third parties including security white hats in the future.
+2. API building: CORE continuously converts vulnerabilities into testing methods and outputs APIs.
+3. Developer management: Eco-developers mint new NFT (i. e. test service) based on API; or they can report vulnerabilities based on their use of the API application.
+4. Vulnerability conversion: The vulnerability platform is a key component of CORE’s continuous capacity building.
 
-## “CORE”平台特点
-
-（将会在未来会不断更新）
-
-1. （测试）工具建设：集合了各类测试工具，且未来将测试能力以API形式封装，提供给相关三方（如安全白帽）
-2. API建设：CORE不断端漏洞转化成测试手段，并且变成API输出
-3. 开发者管理：生态开发者基于API 生成全新NFT（测试服务）；或基于API应用后发现的漏洞提交
-4. 漏洞转化 ：漏洞平台是 CORE 持续能力建设的一个核心组成
-
-## 安装
-
-### 环境安装
+## Installation 
+### Install the environment
 
 ```
 docker build -t core:v1 -f DockerfileDev .
@@ -23,13 +19,13 @@ docker run -it --name core -p 8000:8000 -v 宿主机代码目录:/opt/project co
 
 ```
 
-redis 6.2.6启动
+redis 6.2.6 install
+postgres install
 
-postgres启动
+#### configuration
 
-#### 配置
+django service configuration
 
-django服务配置
 path: backend/conf/conf.json
 
 ```
@@ -45,7 +41,8 @@ path: backend/conf/conf.json
 }
 ```
 
-coreslither配置
+coreslither configuration
+
 path: coreslither/coreslither/config.conf
 
 ```
@@ -63,7 +60,8 @@ path: coreslither/coreslither/config.conf
 }
 ```
 
-corethril配置
+corethril configuration
+
 path: corethril/corethril/config.conf
 
 ```
@@ -81,7 +79,7 @@ path: corethril/corethril/config.conf
 }
 ```
 
-coreSmartian配置
+coreSmartian configuration
 path: coresmartian/coresmartian/config.conf
 
 ```
@@ -99,7 +97,8 @@ path: coresmartian/coresmartian/config.conf
 }
 ```
 
-bsc/eth apikey配置
+bsc/eth API Keys configuration
+
 path: backend/api/tools/contract_helper.py
 
 ```
@@ -108,8 +107,7 @@ apikey = {"bsc": "",
 ```
 
 
-
-#### api服务启动
+#### API service run
 
 ```
 docker exec -it core bash
@@ -117,32 +115,30 @@ docker exec -it core bash
 nohup python backend/manage.py runserver 0:8000 >/opt/project/core-log/api 2>&1 &
 ```
 
-#### 检测服务启动
+#### Detection service run
 
-##### python启动
+##### Python run
 
 ```
 nohup python coreslither/coreslither/handler.py >/opt/project/core-log/slither 2>&1 &
 nohup python corethril/corethril/handler.py >/opt/project/core-log/thril 2>&1 &
 nohup python coresmartian/coresmartian/handler.py >/opt/project/core-log/smartian 2>&1 &
-
 ```
 
-##### faas-启动
+##### FaaS- run
 
 ```
 ...
 ```
 
-## 使用
+## How to use the API?
+apifox link: 
+https://www.apifox.cn/apidoc/shared-979b9088-fd6a-4e65-8c96-c048c3edd188 password: x849iT7T
+1. Upload the smart contract file
+     i. Local file upload
+     ii. Contract address upload
 
-apifox
-链接: https://www.apifox.cn/apidoc/shared-979b9088-fd6a-4e65-8c96-c048c3edd188  访问密码 : x849iT7T 
-
-1. 上传合约文件
-   1. 本地文件上传
-   2. 合约地址上传
-2. 查看检测结果
+2. View test results
 
 ---
-Triathon官方邮箱：triathonspace@gmail.com
+Triathon official mailbox：triathonspace@gmail.com
