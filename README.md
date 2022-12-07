@@ -13,13 +13,14 @@ In the CORE platform, we incorporate the fuzzing-test testing method and the con
 ### Install the environment
 
 ```
-docker build -t core:v1 -f DockerfileDev .
+docker pull aug1/core-dev:1.0.1
 
-docker run -it --name core -p 8000:8000 -v 宿主机代码目录:/opt/project core:v1
+docker run -it --name core -p 8000:8000 -v HostCodeDirectory:/opt/project aug1/core-dev:1.0.1
 
 ```
 
 redis 6.2.6 install
+
 postgres install
 
 #### configuration
@@ -80,6 +81,7 @@ path: corethril/corethril/config.conf
 ```
 
 coreSmartian configuration
+
 path: coresmartian/coresmartian/config.conf
 
 ```
@@ -111,6 +113,12 @@ apikey = {"bsc": "",
 
 ```
 docker exec -it core bash
+
+cd /opt/project
+
+python backend/manage.py makemigrations
+
+python backend/manage.py migrate
 
 nohup python backend/manage.py runserver 0:8000 >/opt/project/core-log/api 2>&1 &
 ```
