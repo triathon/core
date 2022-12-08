@@ -13,9 +13,9 @@ In the CORE platform, we incorporate the fuzzing-test testing method and the con
 ### Install the environment
 
 ```
-docker pull aug1/core-dev:1.0.1
+docker pull aug1/core-dev:1.0.2
 
-docker run -it --name core -p 8000:8000 -v HostCodeDirectory:/opt/project aug1/core-dev:1.0.1
+docker run -it --name core -p 8000:8000 --privileged=true --restart always -v HostCodeDirectory:/opt/project aug1/core-dev:1.0.2
 
 ```
 
@@ -114,6 +114,8 @@ apikey = {"bsc": "",
 ```
 docker exec -it core bash
 
+source /etc/profile
+
 cd /opt/project
 
 python backend/manage.py makemigrations
@@ -142,11 +144,16 @@ nohup python coresmartian/coresmartian/handler.py >/opt/project/core-log/smartia
 ## How to use the API?
 apifox link: 
 https://www.apifox.cn/apidoc/shared-979b9088-fd6a-4e65-8c96-c048c3edd188 password: x849iT7T
-1. Upload the smart contract file
-     i. Local file upload
-     ii. Contract address upload
+1. Get user nonce [api-id 39966054]
 
-2. View test results
+2. User auth [api-id 39972893]
+
+3. Upload the smart contract file
+
+     1. Local file upload [api-id 39953744]
+     2. Contract address upload [api-id 40058905]
+
+4. View test results [api-id 41147785]
 
 ---
 Triathon official mailbox：triathonspace@gmail.com

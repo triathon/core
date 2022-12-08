@@ -29,8 +29,8 @@ def update_sol_version(version):
         raise Exception("Not version")
     version = version.group(1).replace("^", "")[:3]
     if version == "0.4":
-        solcx.install_solc("0.4.19")
-        solc_version = "0.4.19"
+        solcx.install_solc("0.4.26")
+        solc_version = "0.4.26"
     if version == "0.5":
         switch_global_version("0.5.16")
         solc_version = "0.5.16"
@@ -54,22 +54,29 @@ def generate_sol_abi_bin(solc_version, contract, file_name):
     )
 
     contract_name = file_name.split(".")[0]
-    output_ = [output[v] for v in output if v.split(":")[-1] == contract_name][0]
+    output_ = [output[v] for v in output if v.split(":")[-1] == contract_name]
+    if not output_:
+        output_ = []
+        for v in output:
+            if v.split(":")[-1]:
+                output_.append(output[v])
+                break
+    output_ = output_[0]
 
     abi = str(output_.get("abi"))
     abi = abi.replace("'", '"')
     abi = abi.replace("True", "true")
     abi = abi.replace("False", "false")
 
-    prefix = f"{sys.path[0]}\{int(time.time())}{contract_name}"
+    prefix = f"{sys.path[0]}{os.path.sep}{int(time.time())}{contract_name}"
     os.mkdir(prefix)
 
-    abi_path = f"{prefix}\{contract_name}.abi"
+    abi_path = f"{prefix}{os.path.sep}{contract_name}.abi"
     f = open(abi_path, "a")
     f.write(abi)
     f.close()
 
-    bin_path = f"{prefix}\{contract_name}.bin"
+    bin_path = f"{prefix}{os.path.sep}{contract_name}.bin"
     f1 = open(bin_path, "a")
     f1.write(output_.get("bin"))
     f1.close()
@@ -86,7 +93,6 @@ def run_command(cmd_to_run, cwd=None):
 
     Returns a tuple, containing the stderr and stdout as strings.
     """
-    print(f"cmd run: {cmd_to_run}")
     with tempfile.TemporaryFile() as stdout_file, tempfile.TemporaryFile() as stderr_file:
         # Run the command
         popen = subprocess.Popen(cmd_to_run, stdout=stdout_file, stderr=stderr_file, shell=True, cwd=cwd)
@@ -112,25 +118,28 @@ def handle(req):
     contract = data.contract
     contract_name = data.file_name
 
-    timeout = 2
+    timeout = DATA.test_timeout
 
     version = re.search("pragma solidity ([\d.^]*)", contract)
     solc_version = update_sol_version(version)
     abi_path, bin_path, prefix = generate_sol_abi_bin(solc_version, contract, contract_name)
 
-    order = f"dotnet D:/d/build/Smartian.dll fuzz -v 0 -p {bin_path} -a {abi_path} -t {timeout} -o {prefix}\/result"
+    smartian_dll_path = "/home/Smartian/build/Smartian.dll"  # {sys.path[0]}{os.path.sep}build{os.path.sep}Smartian.dll
+    order = f"dotnet {smartian_dll_path} fuzz -v 0 -p {bin_path} -a {abi_path} -t {timeout} -o {prefix}{os.path.sep}result"
     stderr, stdout = run_command(order)
     if stderr:
-        raise Exception(f'Smartion error: {stderr}')
+        raise Exception(f'Smartian error: {stderr}')
+    if "Statistics" not in stdout:
+        raise Exception(f'Smartian error out: stdount')
+    result = stdout.split("Statistics")[-1]
 
-    result = stdout.split("Fuzzing timeout expired.")[-1]
-    result = result.split("\r\n")
-    result_list = [v.replace(" ", "").split("]")[-1] for v in result]
-    results = {}
-    for v in result_list:
-        if ":" in v:
-            key, value = v.split(":")
-            results[key] = value
+    res, found_bug = result.split("Found Bugs:")
+
+    res_list = [v.replace(" ", "").split("]")[-1] for v in res.split("\n")]
+    results = {v.split(":")[0]: v.split(":")[1] for v in res_list if ":" in v}
+
+    found_bug_list = [v.replace(" ", "").split("]")[-1] for v in found_bug.split("\n")]
+    results["FoundBugs"] = {v.split(":")[0]: v.split(":")[1] for v in found_bug_list if ":" in v}
 
     # rm file
     shutil.rmtree(prefix)
@@ -152,6 +161,7 @@ def run():
         db=DATA.redis_db,
     )
     rc = redis.Redis(connection_pool=conn_pool)
+    rc.lpush(DATA.task_queue, 1)
     while True:
         id_list = rc.lrange(DATA.task_queue, 0, 4)
         if id_list:
