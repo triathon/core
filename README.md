@@ -95,7 +95,8 @@ path: coresmartian/coresmartian/config.conf
   "redis_port": ,
   "redis_password":"",
   "redis_db":5,
-  "task_queue": "coresmartian"
+  "task_queue": "coresmartian",
+  "test_timeout": 6
 }
 ```
 
