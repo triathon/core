@@ -9,6 +9,11 @@ In the CORE platform, we incorporate the fuzzing-test testing method and the con
 3. Developer management: Eco-developers mint new NFT (i. e. test service) based on API; or they can report vulnerabilities based on their use of the API application.
 4. Vulnerability conversion: The vulnerability platform is a key component of CORE’s continuous capacity building.
 
+## Docs
+[Directory Description](./Directory.md)
+
+[Readme](./README.md)
+
 ## Installation 
 ### Install the environment
 
