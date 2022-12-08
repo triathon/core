@@ -32,6 +32,8 @@ def handle(req):
     version = re.search("pragma solidity ([\d.^]*)", data.contract)
     if version:
         version = version.group(1).replace("^", "")[:3]
+        if version == "0.4":
+            switch_global_version("0.4.26")
         if version == "0.5":
             switch_global_version("0.5.16")
         if version == "0.6":
@@ -117,6 +119,7 @@ def run():
         db=DATA.redis_db,
     )
     rc = redis.Redis(connection_pool=conn_pool)
+    rc.lpush(DATA.task_queue, 1)
     while True:
         id_list = rc.lrange(DATA.task_queue, 0, 4)
         if id_list:

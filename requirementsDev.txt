@@ -10,3 +10,7 @@ git+https://github.com/triathon/slither.git@master
 solc-select==0.2.0
 
 mythril==0.23.9
+redis
+certifi
+psycopg2-binary==2.9.3
+beautifulsoup4==4.11.1
