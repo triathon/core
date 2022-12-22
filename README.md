@@ -10,9 +10,11 @@ In the CORE platform, we incorporate the fuzzing-test testing method and the con
 4. Vulnerability conversion: The vulnerability platform is a key component of CORE’s continuous capacity building.
 
 ## Docs
-[Directory Description](./Directory.md)
+[Directory Description](docs/Directory.md)
 
 [Readme](./README.md)
+
+[Framework](docs/framework.md)
 
 ## Installation 
 ### Install the environment
