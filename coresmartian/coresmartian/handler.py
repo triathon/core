@@ -28,21 +28,22 @@ def update_sol_version(version):
     if not version:
         raise Exception("Not version")
     version = version.group(1).replace("^", "")[:3]
+    solc_version = "0.8.16"
     if version == "0.4":
         solcx.install_solc("0.4.26")
         solc_version = "0.4.26"
-    if version == "0.5":
+    elif version == "0.5":
         switch_global_version("0.5.16")
         solc_version = "0.5.16"
-    if version == "0.6":
+    elif version == "0.6":
         switch_global_version("0.6.11")
         solc_version = "0.6.11"
-    if version == "0.7":
+    elif version == "0.7":
         switch_global_version("0.7.6")
         solc_version = "0.7.6"
-    if version == "0.8":
+    elif version == "0.8":
         switch_global_version("0.8.16")
-        solc_version = "0.8.16"
+    solcx.install_solc(solc_version)
     return solc_version
 
 
