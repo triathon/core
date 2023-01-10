@@ -37,7 +37,6 @@ def set_queue(d_id):
 
 
 class SubmitContractAddress(APIView):
-    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request: Request):
@@ -181,7 +180,8 @@ class AuthView(APIView):
 
         user.nonce = random.randint(100000, 1000000)
         user.save()
-
+        print(rec_address)
+        print(address)
         if address == rec_address:
             return Response({"token": str(AccessToken.for_user(user))})
         else:
