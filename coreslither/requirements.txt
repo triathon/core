@@ -1,0 +1,6 @@
+Flask==2.2.2
+peewee==3.15.2
+redis==4.4.0
+slither==0.3.0
+slither_analyzer==0.8.3
+solc_select==0.2.0

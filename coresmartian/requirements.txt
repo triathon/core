@@ -1,0 +1,7 @@
+beautifulsoup4==4.11.1
+Flask==2.2.2
+peewee==3.15.2
+py_solc_x==1.1.1
+redis==4.4.0
+requests==2.28.1
+solc_select==0.2.0
