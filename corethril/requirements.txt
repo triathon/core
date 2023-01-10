@@ -1,0 +1,6 @@
+beautifulsoup4==4.11.1
+Flask==2.2.2
+mythril==0.23.9
+peewee==3.15.2
+redis==4.4.0
+requests==2.28.1
