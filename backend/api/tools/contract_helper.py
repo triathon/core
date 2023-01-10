@@ -2,11 +2,12 @@ import json
 import re
 from collections import OrderedDict
 import requests
+from conf import config
 
 # 使用contact@triathon.space注册，密码见mainstage项目
 # api请求5个/s
-apikey = {"bsc": "",
-          "eth": ""}
+apikey = {"bsc": config.apikey_bsc,
+          "eth": config.apikey_eth}
 endpoint = {"bsc": "https://api.bscscan.com/api",
             "eth": "https://api.etherscan.io/api"}
 
