@@ -1,0 +1,12 @@
+FROM octahub.8lab.cn:5000/base/django3:base38
+COPY sources.list /etc/apt/sources.list
+WORKDIR /usr/local/backend/
+#COPY backend/requirements.txt ./
+COPY a   ./requirements.txt
+RUN apt update \
+    && apt install -y python3-dev libpq-dev  gcc git \
+    && rm -rf /root/.pip/pip.conf \
+    && pip3 install -r requirements.txt
+ADD backend /usr/local/backend
+EXPOSE 8000
+CMD python3 /usr/local/backend/manage.py runserver 0:8000
