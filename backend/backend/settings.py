@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'api',
 ]
@@ -44,11 +45,13 @@ AUTH_USER_MODEL = 'api.User'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.request_middleware.RequestMiddleware'
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -157,3 +160,8 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
 }
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = ('*')

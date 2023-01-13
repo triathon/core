@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 import shutil
 
@@ -21,7 +22,7 @@ class Merge(object):
         self.version = None
         self.verify()
         date = int(time.time())
-        self.prefix = f"/opt/project/backend/upload_contracts/{str(date)}npm"
+        self.prefix = sys.path[0] + os.path.sep + f"upload_contracts/{str(date)}npm"
         os.mkdir(self.prefix)
         self.node_modules_path = f"{self.prefix}/node_modules"
 
@@ -75,10 +76,18 @@ class Merge(object):
         """
         main_file = os.path.abspath(self.path + self.main_file)
         f = open(main_file, 'r').read()
-        version = re.search("pragma solidity ([\d.^]*)", f)
+        version = re.search("pragma solidity ([\d.^|\d.=|\d.>=|\d.>]*)", f)
         if not version:
             raise Exception("The main file has no version number")
-        version = version.group(1).replace("^", "")
+        version_group = version.group(1)
+        if "^" in version_group:
+            version = version_group.replace("^", "")
+        elif "=" in version_group:
+            version = version_group.replace("=", "")
+        elif ">=" in version_group:
+            version = version_group.replace(">=", "")
+        elif ">" in version_group:
+            version = version_group.replace(">", "")
         match = re.search(r"\d+\.\d+\.\d+", version)
         if not match:
             raise Exception("Compiler version is not a valid format")
