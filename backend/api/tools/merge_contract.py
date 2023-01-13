@@ -88,6 +88,8 @@ class Merge(object):
             version = version_group.replace(">=", "")
         elif ">" in version_group:
             version = version_group.replace(">", "")
+        else:
+            version = version_group
         match = re.search(r"\d+\.\d+\.\d+", version)
         if not match:
             raise Exception("Compiler version is not a valid format")

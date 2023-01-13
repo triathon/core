@@ -29,9 +29,20 @@ def handle(req):
     if not data:
         return "Invalid resource"
 
-    version = re.search("pragma solidity ([\d.^]*)", data.contract)
+    version = re.search("pragma solidity ([\d.^|\d.=|\d.>=|\d.>]*)", data.contract)
     if version:
-        version = version.group(1).replace("^", "")[:3]
+
+        version_group = version.group(1)
+        if "^" in version_group:
+            version = version_group.replace("^", "")[:3]
+        elif "=" in version_group:
+            version = version_group.replace("=", "")[:3]
+        elif ">=" in version_group:
+            version = version_group.replace(">=", "")[:3]
+        elif ">" in version_group:
+            version = version_group.replace(">", "")[:3]
+        else:
+            version = version_group[:3]
         if version == "0.4":
             switch_global_version("0.4.26")
         if version == "0.5":
@@ -129,7 +140,7 @@ def run():
                 print("result: {}".format(result))
                 time.sleep(2)
             except:
-                rc.lpush(DATA.task_queue, contract_id)
+                # rc.lpush(DATA.task_queue, contract_id)
                 print("tautology")
         else:
             print("wait...")

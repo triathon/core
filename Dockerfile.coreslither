@@ -1,0 +1,19 @@
+FROM octahub.8lab.cn:5000/base/django3:base38 
+COPY sources.list /etc/apt/sources.list
+WORKDIR /usr/local/coreslither/
+#COPY coreslither/requirements.txt   ./requirements.txt
+COPY  a ./requirements.txt
+RUN apt update \
+    && apt install -y libpq-dev python3-dev gcc git \
+    && rm -rf /root/.pip/pip.conf \
+    && pip3 install --no-deps -r requirements.txt
+RUN solc-select install 0.4.26
+RUN solc-select install 0.5.16
+RUN solc-select install 0.6.11
+RUN solc-select install 0.7.6
+RUN solc-select install 0.8.16
+RUN solc-select use 0.8.16 
+ADD coreslither /usr/local/coreslither
+CMD python3 /usr/local/coreslither/coreslither/handler.py 
+
+

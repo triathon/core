@@ -231,6 +231,8 @@ class UploadContractFile(APIView):
 
 
 class DownloadContractFile(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     """
     Download the contract file api
     """
@@ -264,6 +266,8 @@ class QueryResult(APIView):
 
 
 class CheckStatus(APIView):
+    permission_classes = []
+    authentication_classes = []
     """
     check the user detection status
     1. 检查
@@ -272,10 +276,10 @@ class CheckStatus(APIView):
     def get(self, request: Request):
         addr = request.GET.get("addr")
         if not addr:
-            return {"code": "30001", "msg": "Not addr"}
+            return Response({"code": "30001", "msg": "Not addr"})
         user = User.objects.filter(wallet_address=addr).first()
         if not user:
-            return {"code": "30001", "msg": "Not account"}
+            return Response({"code": "30001", "msg": "Not account"})
 
         doc = Document.objects.filter(user=user).defer("file")
         count = doc.count()
@@ -289,6 +293,8 @@ class CheckStatus(APIView):
 
 
 class TotalDetection(APIView):
+    permission_classes = []
+    authentication_classes = []
     """
     返回检测总数
     """
@@ -308,6 +314,8 @@ class DetectionLog(ListAPIView):
     """
     检测log
     """
+    permission_classes = []
+    authentication_classes = []
     queryset = Document.objects.exclude(contract_address=None).exclude(score=None)
     serializer_class = DetectionLogSerializer
     pagination_class = MyPageNumberPagination
@@ -327,6 +335,9 @@ class DetectionDetails(APIView):
     """
     检测详情
     """
+    permission_classes = []
+    authentication_classes = []
+
     def get(self, request):
         did = request.GET.get("id")
         if not did:
@@ -339,7 +350,7 @@ class DetectionDetails(APIView):
         corethril = result.get("corethril")
         core_slither = result.get("core_slither")
         core_smartian = result.get("core_smartian")
-        if not corethril and not core_slither:
+        if (not corethril and corethril != []) or (not core_slither and core_slither != []):
             return Response({"code": 30001, "msg": "under detecting"})
 
         if not query.score:
