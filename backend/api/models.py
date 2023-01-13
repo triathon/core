@@ -15,7 +15,8 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     wallet_address = models.CharField(max_length=42, unique=True)
     nonce = models.CharField(max_length=6, default=make_nonce)
-    
+    rsa_privateKey = models.CharField(max_length=1000, null=True)
+
     def __str__(self):
         return self.wallet_address
 
@@ -32,6 +33,8 @@ class Document(models.Model):
     contract = models.TextField()
     result = models.JSONField(blank=True, null=True, default=dict)
     functions = models.TextField(blank=True, null=True)
+    score = models.CharField(max_length=10, blank=True, null=True)
+    score_ratio = models.JSONField(blank=True, null=True, default=dict)
     
     def __str__(self):
         return self.file_name
@@ -53,3 +56,11 @@ class UploadContract(models.Model):
     result = models.JSONField(blank=True, null=True, default=dict)
     functions = models.TextField(blank=True, null=True)
     contract = models.TextField()
+
+
+class DocumentResult(models.Model):
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, blank=True, null=True)
+    level = models.CharField(max_length=30, blank=True, null=True)  # High / Medium / Low
+    description = models.CharField(max_length=500, blank=True, null=True)
+    details = models.JSONField(blank=True, null=True, default=dict)

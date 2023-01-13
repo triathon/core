@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Document
+from .models import Document, DocumentResult
 
 
 class BinaryField(serializers.Field):
@@ -42,3 +42,15 @@ class ReadDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         exclude = ['file', 'contract', 'result']
+
+
+class DetectionLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['id', 'file_name', 'contract_address', 'network', 'score']
+
+
+class DocumentResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentResult
+        fields = ('id', 'title', 'level', 'description')

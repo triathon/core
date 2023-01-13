@@ -12,4 +12,13 @@ urlpatterns = [
     path('user/nonce/', AuthView.as_view()),
     path('user/auth/', AuthView.as_view()),
 
+    # triathon
+    path('user/get_nonce/', LoginView.as_view()),
+    path('user/login/', LoginView.as_view()),
+
+    path('api/v1/check_status', CheckStatus.as_view()),
+    path('api/v1/total', TotalDetection.as_view()),
+    path('api/v1/history', DetectionLog.as_view()),
+    path('api/v1/details', DetectionDetails.as_view()),
+
 ]
