@@ -299,7 +299,7 @@ class TotalDetection(APIView):
 
 
 class MyPageNumberPagination(PageNumberPagination):
-    page_size = 30
+    page_size = 100
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -308,10 +308,20 @@ class DetectionLog(ListAPIView):
     """
     检测log
     """
-    queryset = Document.objects.exclude(contract_address=None)
+    queryset = Document.objects.exclude(contract_address=None).exclude(score=None)
     serializer_class = DetectionLogSerializer
     pagination_class = MyPageNumberPagination
     ordering = ['-id']
+
+    def get(self, request, *args, **kwargs):
+        name = request.GET.get("name")
+        addr = request.GET.get("addr")
+        if name:
+            self.queryset = self.queryset.filter(file_name=name)
+        if addr:
+            self.queryset = self.queryset.filter(contract_address=addr)
+        return self.list(request, *args, **kwargs)
+
 
 
 class DetectionDetails(APIView):
