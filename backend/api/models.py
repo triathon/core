@@ -62,5 +62,5 @@ class DocumentResult(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     title = models.CharField(max_length=100, blank=True, null=True)
     level = models.CharField(max_length=30, blank=True, null=True)  # High / Medium / Low
-    description = models.CharField(max_length=500, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     details = models.JSONField(blank=True, null=True, default=dict)

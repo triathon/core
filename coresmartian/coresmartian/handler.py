@@ -27,7 +27,18 @@ def update_sol_version(version):
     """
     if not version:
         raise Exception("Not version")
-    version = version.group(1).replace("^", "")[:3]
+
+    version_group = version.group(1)
+    if "^" in version_group:
+        version = version_group.replace("^", "")[:3]
+    elif "=" in version_group:
+        version = version_group.replace("=", "")[:3]
+    elif ">=" in version_group:
+        version = version_group.replace(">=", "")[:3]
+    elif ">" in version_group:
+        version = version_group.replace(">", "")[:3]
+    else:
+        version = version_group[:3]
     solc_version = "0.8.16"
     if version == "0.4":
         solcx.install_solc("0.4.26")
@@ -121,7 +132,7 @@ def handle(req):
 
     timeout = DATA.test_timeout
 
-    version = re.search("pragma solidity ([\d.^]*)", contract)
+    version = re.search("pragma solidity ([\d.^|\d.=|\d.>=|\d.>]*)", contract)
     solc_version = update_sol_version(version)
     abi_path, bin_path, prefix = generate_sol_abi_bin(solc_version, contract, contract_name)
 
@@ -171,9 +182,9 @@ def run():
                 result = handle(contract_id)
                 print("result: {}".format(result))
                 time.sleep(2)
-            except:
-                rc.lpush(DATA.task_queue, contract_id)
-                print("tautology")
+            except Exception as e:
+                # rc.lpush(DATA.task_queue, contract_id)
+                print("tautology", e)
         else:
             print("wait...")
             time.sleep(5)
