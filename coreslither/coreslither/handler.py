@@ -119,14 +119,18 @@ def run():
         db=DATA.redis_db,
     )
     rc = redis.Redis(connection_pool=conn_pool)
-    rc.lpush(DATA.task_queue, 1)
     while True:
         id_list = rc.lrange(DATA.task_queue, 0, 4)
         if id_list:
             contract_id = rc.rpop(DATA.task_queue)
-            result = handle(contract_id)
-            print("db contract index {}, {}".format(contract_id, result))
-            time.sleep(2)
+            try:
+                print("db contract index {} :".format(contract_id))
+                result = handle(contract_id)
+                print("result: {}".format(result))
+                time.sleep(2)
+            except:
+                rc.lpush(DATA.task_queue, contract_id)
+                print("tautology")
         else:
             print("wait...")
             time.sleep(5)

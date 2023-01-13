@@ -323,7 +323,6 @@ class DetectionLog(ListAPIView):
         return self.list(request, *args, **kwargs)
 
 
-
 class DetectionDetails(APIView):
     """
     检测详情
@@ -382,12 +381,11 @@ class DetectionDetails(APIView):
                 score = 0
 
             score_ratio = {
-                "high": high_count,
-                "medium": medium_count,
-                "low": low_count,
-                "high_ratio": "%.2f" % (high_count / document_count),
-                "medium_ratio": "%.2f" % (medium_count / document_count),
-                "low_ratio": "%.2f" % (low_count / document_count),
+                "result": [
+                    {"type": "high", "count": high_count, "ratio": "%.2f" % (high_count / document_count)},
+                    {"type": "medium", "count": medium_count, "ratio": "%.2f" % (medium_count / document_count)},
+                    {"type": "low", "count": low_count, "ratio": "%.2f" % (low_count / document_count)},
+                ]
             }
             query.score = "%.2f" % score
             query.score_ratio = score_ratio
