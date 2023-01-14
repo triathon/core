@@ -1,0 +1,6 @@
+FROM octahub.8lab.cn:5000/l4-triathon/core-base:v1
+COPY sources.list /etc/apt/sources.list
+WORKDIR /usr/local/backend/
+ADD backend /usr/local/backend
+EXPOSE 8000
+CMD python3 /usr/local/backend/manage.py runserver 0:8000
