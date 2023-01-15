@@ -4,6 +4,7 @@ import inspect
 import time
 
 import redis
+import solcx
 
 from models.module import Document, DATA
 from slither.slither import Slither
@@ -16,6 +17,43 @@ from token_audit.contract_helper import check_selfdestruct, check_owner_privileg
 
 
 pattern = r"\(.*?\)"
+
+ver_dict = {
+    "0.4": "0.4.26",
+    "0.5": "0.5.16",
+    "0.6": "0.6.11",
+    "0.7": "0.7.6",
+    "0.8": "0.8.16",
+}
+
+
+def version_vif(version):
+    """
+    版本
+    """
+    version_group = version.group(1)
+    if "^" in version_group:
+        version = version_group.replace("^", "")
+    elif "=" in version_group:
+        version = version_group.replace("=", "")
+    elif ">=" in version_group:
+        version = version_group.replace(">=", "")
+    elif ">" in version_group:
+        version = version_group.replace(">", "")
+    else:
+        version = version_group
+    version_two = version[:3]
+    version_three = version.split(".")[-1]
+
+    installed_ver = ver_dict.get(version_two)
+    # 判断版本
+    # installed_version_three = installed_ver.split(".")[-1]
+    # if int(version_three) > int(installed_version_three):
+    #     installed_ver = version
+    #     solcx.install_solc(version)
+    # switch_global_version(installed_ver)
+    switch_global_version(installed_ver)
+    return
 
 
 def handle(req):
@@ -31,29 +69,7 @@ def handle(req):
 
     version = re.search("pragma solidity ([\d.^|\d.=|\d.>=|\d.>]*)", data.contract)
     if version:
-
-        version_group = version.group(1)
-        if "^" in version_group:
-            version = version_group.replace("^", "")[:3]
-        elif "=" in version_group:
-            version = version_group.replace("=", "")[:3]
-        elif ">=" in version_group:
-            version = version_group.replace(">=", "")[:3]
-        elif ">" in version_group:
-            version = version_group.replace(">", "")[:3]
-        else:
-            version = version_group[:3]
-        if version == "0.4":
-            switch_global_version("0.4.26")
-        if version == "0.5":
-            switch_global_version("0.5.16")
-        if version == "0.6":
-            switch_global_version("0.6.11")
-        if version == "0.7":
-            switch_global_version("0.7.6")
-        if version == "0.8":
-            switch_global_version("0.8.16")
-
+        version_vif(version)
     with NamedTemporaryFile('w+t', suffix=".sol") as f:
         f.write(data.contract)
         f.seek(0)
@@ -103,8 +119,6 @@ def handle(req):
                 "description": description
             })
 
-    result = data.result
-    result["core_slither"] = result_list
 
     token_result = {}
     real_contract = find_real_contract(slither)
@@ -114,6 +128,9 @@ def handle(req):
         token_result['is_delegatecall'] = check_selfdestruct(real_contract)[1]
         token_result['is_owner_privilege'] = check_owner_privilege(real_contract)
 
+    data = Document.select().where(Document.id == s_id).first()
+    result = data.result
+    result["core_slither"] = result_list
     data.result['token_audit'] = token_result
     data.result = result
     data.save()
@@ -139,9 +156,9 @@ def run():
                 result = handle(contract_id)
                 print("result: {}".format(result))
                 time.sleep(2)
-            except:
+            except Exception as e:
                 rc.lpush(DATA.task_queue, contract_id)
-                print("tautology")
+                print("tautology", e)
         else:
             print("wait...")
             time.sleep(5)
