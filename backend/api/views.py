@@ -286,7 +286,10 @@ class CheckStatus(APIView):
         doc = Document.objects.filter(user=user).defer("file").order_by("-id")
         count = doc.count()
 
-        result = doc.first().result
+        first = doc.first()
+        if not first:
+            return Response({"code": "30001", "msg": "no contract was uploaded"})
+        result = first.result
         corethril = result.get("corethril")
         core_slither = result.get("core_slither")
 
