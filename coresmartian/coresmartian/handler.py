@@ -156,6 +156,8 @@ def handle(req):
     # rm file
     shutil.rmtree(prefix)
 
+    # save result
+    data = Document.select().where(Document.id == int(req)).first()
     data_result = data.result
     data_result["core_smartian"] = [results]
     data.result = data_result
