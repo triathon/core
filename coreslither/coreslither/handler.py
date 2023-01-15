@@ -140,7 +140,7 @@ def run():
                 print("result: {}".format(result))
                 time.sleep(2)
             except:
-                # rc.lpush(DATA.task_queue, contract_id)
+                rc.lpush(DATA.task_queue, contract_id)
                 print("tautology")
         else:
             print("wait...")
