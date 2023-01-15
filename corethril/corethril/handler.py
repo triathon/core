@@ -103,9 +103,9 @@ def run():
                 result = handle(contract_id)
                 print("result: {}".format(result))
                 time.sleep(2)
-            except:
+            except Exception as e:
                 rc.lpush(DATA.task_queue, contract_id)
-                print("tautology")
+                print("tautology", e)
         else:
             print("wait...")
             time.sleep(5)

@@ -157,7 +157,7 @@ def run():
                 print("result: {}".format(result))
                 time.sleep(2)
             except Exception as e:
-                # rc.lpush(DATA.task_queue, contract_id)
+                rc.lpush(DATA.task_queue, contract_id)
                 print("tautology", e)
         else:
             print("wait...")
