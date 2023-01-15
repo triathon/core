@@ -32,6 +32,8 @@ from api.tools.rsc_func import rsaEncrypt, rsaDecrypt
 
 rd = get_redis_connection()
 
+number_of_detection = config.number_of_detection
+
 
 def set_queue(d_id):
     rd.lpush(config.coreslither_queue, d_id)
@@ -114,8 +116,8 @@ class SubmitContractAddress(APIView):
         if doc.filter(result={}).exists():
             return Response({"code": 30001, "msg": "one is currently being detected"})
         count = doc.count()
-        if count >= 2:
-            return Response({"code": 200, "status": 2, "msg": "two have been detected"})
+        if count >= number_of_detection:
+            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
 
         network, address = request.data['network'], request.data['address']
         if network not in ["eth", "bsc"]:
@@ -158,8 +160,8 @@ class UploadContractFile(APIView):
         if doc.filter(result={}).exists():
             return Response({"code": 30001, "msg": "one is currently being detected"})
         count = doc.count()
-        if count >= 2:
-            return Response({"code": 200, "status": 2, "msg": "two have been detected"})
+        if count >= number_of_detection:
+            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
 
         upload_file = request.data.get("file")
         upload_file_name = upload_file.name
@@ -281,14 +283,18 @@ class CheckStatus(APIView):
         if not user:
             return Response({"code": "30001", "msg": "Not account"})
 
-        doc = Document.objects.filter(user=user).defer("file")
+        doc = Document.objects.filter(user=user).defer("file").order_by("-id")
         count = doc.count()
 
-        if doc.filter(result={}).exists():
+        result = doc.first().result
+        corethril = result.get("corethril")
+        core_slither = result.get("core_slither")
+
+        if doc.filter(result={}).exists() or (not corethril and corethril != []) or (not core_slither and core_slither != []):
             return Response({"code": 200, "status": 1, "msg": "one is currently being detected"})
 
-        if count >= 2:
-            return Response({"code": 200, "status": 2, "msg": "two have been detected"})
+        if count >= number_of_detection:
+            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
         return Response({"code": 200, "status": 0})
 
 
@@ -323,11 +329,12 @@ class DetectionLog(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         name = request.GET.get("name")
-        addr = request.GET.get("addr")
+        queryset = self.queryset
         if name:
-            self.queryset = self.queryset.filter(file_name=name)
-        if addr:
-            self.queryset = self.queryset.filter(contract_address=addr)
+            queryset = self.queryset.filter(file_name=name)
+            if not queryset.all():
+                queryset = self.queryset.filter(contract_address=name)
+        self.queryset = queryset
         return self.list(request, *args, **kwargs)
 
 
@@ -351,7 +358,7 @@ class DetectionDetails(APIView):
         core_slither = result.get("core_slither")
         core_smartian = result.get("core_smartian")
         if (not corethril and corethril != []) or (not core_slither and core_slither != []):
-            return Response({"code": 30001, "msg": "under detecting"})
+            return Response({"code": 200, "msg": "under detecting"})
 
         if not query.score:
             # 处理检测数据
@@ -374,8 +381,6 @@ class DetectionDetails(APIView):
                     "details": i
                 }
                 DocumentResult.objects.get_or_create(**res_data)
-            # save result
-            # create = DocumentResult.objects.bulk_create([DocumentResult(**i) for i in result_data])
 
             # query
             dr_query = DocumentResult.objects.filter(document=query)
@@ -396,7 +401,8 @@ class DetectionDetails(APIView):
                     {"type": "high", "count": high_count, "ratio": "%.2f" % (high_count / document_count)},
                     {"type": "medium", "count": medium_count, "ratio": "%.2f" % (medium_count / document_count)},
                     {"type": "low", "count": low_count, "ratio": "%.2f" % (low_count / document_count)},
-                ]
+                ],
+                "time": int(time.time())
             }
             query.score = "%.2f" % score
             query.score_ratio = score_ratio
@@ -408,7 +414,7 @@ class DetectionDetails(APIView):
 
         data = {
             "user": query.user.wallet_address,
-            "time": "",
+            "time": query.score_ratio.get("time", query.date),
             "contract_address": query.contract_address,
             "chain": query.network,
             "score": query.score,

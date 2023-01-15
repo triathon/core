@@ -6,5 +6,6 @@
   "db_password": "",
   "redis": "",
   "coreslither_queue": "coreslither",
-  "corethril_queue": "corethril"
+  "corethril_queue": "corethril",
+  "number_of_detection": 10000
 }
