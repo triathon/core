@@ -294,7 +294,7 @@ class CheckStatus(APIView):
         core_slither = result.get("core_slither")
 
         if doc.filter(result={}).exists() or (not corethril and corethril != []) or (not core_slither and core_slither != []):
-            return Response({"code": 200, "status": 1, "msg": "one is currently being detected"})
+            return Response({"code": 200, "status": 1, "msg": "one is currently being detected", "id": first.id})
 
         if count >= number_of_detection:
             return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
