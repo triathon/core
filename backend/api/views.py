@@ -288,7 +288,7 @@ class CheckStatus(APIView):
 
         first = doc.first()
         if not first:
-            return Response({"code": "30001", "msg": "no contract was uploaded"})
+            return Response({"code": 200, "status": 0})
         result = first.result
         corethril = result.get("corethril")
         core_slither = result.get("core_slither")
