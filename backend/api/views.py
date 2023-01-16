@@ -288,13 +288,13 @@ class CheckStatus(APIView):
 
         first = doc.first()
         if not first:
-            return Response({"code": "30001", "msg": "no contract was uploaded"})
+            return Response({"code": 200, "status": 0})
         result = first.result
         corethril = result.get("corethril")
         core_slither = result.get("core_slither")
 
         if doc.filter(result={}).exists() or (not corethril and corethril != []) or (not core_slither and core_slither != []):
-            return Response({"code": 200, "status": 1, "msg": "one is currently being detected"})
+            return Response({"code": 200, "status": 1, "msg": "one is currently being detected", "id": first.id})
 
         if count >= number_of_detection:
             return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
