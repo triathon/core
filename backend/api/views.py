@@ -41,6 +41,41 @@ def set_queue(d_id):
     rd.lpush(config.coresmartian_queue, d_id)
 
 
+def check_whether_there_is_detect(doc, result):
+    """检查是否有正在检测中的
+    :param doc:
+    """
+    corethril = result.get("corethril")
+    core_slither = result.get("core_slither")
+
+    if doc.filter(result={}).exists():
+        return True
+    if not corethril and corethril != []:
+        return True
+    if not core_slither and core_slither != []:
+        return True
+    return False
+
+
+def check_detection_numberOfTimes(count):
+    """
+    检查检测次数是否超标
+    """
+    if count >= number_of_detection:
+        return True
+    return False
+
+
+def checkstatus(doc, result):
+    if check_whether_there_is_detect(doc, result):
+        first = doc.first()
+        return False, {"code": 200, "status": 1, "msg": "one is currently being detected", "id": first.id}
+
+    if check_detection_numberOfTimes(doc.count()):
+        return False, {"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"}
+    return True, ""
+
+
 # auth
 
 class AuthView(APIView):
@@ -112,12 +147,12 @@ class SubmitContractAddress(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request: Request):
-        doc = Document.objects.filter(user=self.request.user).defer("file")
-        if doc.filter(result={}).exists():
-            return Response({"code": 30001, "msg": "one is currently being detected"})
-        count = doc.count()
-        if count >= number_of_detection:
-            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
+        doc = Document.objects.filter(user=self.request.user).defer("file").order_by("-id")
+        first = doc.first()
+        if first:
+            status, resp = checkstatus(doc, first.result)
+            if not status:
+                return Response(resp)
 
         network, address = request.data['network'], request.data['address']
         if network not in ["eth", "bsc"]:
@@ -142,9 +177,9 @@ class SubmitContractAddress(APIView):
                 }
         serializer = WriteDocumentSerializer(data=data)
         if serializer.is_valid():
-            doc = serializer.save()
-            set_queue(doc.id)
-            return Response({"id": doc.id})
+            save_doc = serializer.save()
+            set_queue(save_doc.id)
+            return Response({"id": save_doc.id})
         else:
             print(serializer.errors, 'error')
             return Response({"id": None}, status=403)
@@ -156,12 +191,12 @@ class UploadContractFile(APIView):
     """
 
     def post(self, request: Request):
-        doc = Document.objects.filter(user=self.request.user).defer("file")
-        if doc.filter(result={}).exists():
-            return Response({"code": 30001, "msg": "one is currently being detected"})
-        count = doc.count()
-        if count >= number_of_detection:
-            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
+        doc = Document.objects.filter(user=self.request.user).defer("file").order_by("-id")
+        first = doc.first()
+        if first:
+            status, resp = checkstatus(doc, first.result)
+            if not status:
+                return Response(resp)
 
         upload_file = request.data.get("file")
         upload_file_name = upload_file.name
@@ -219,9 +254,9 @@ class UploadContractFile(APIView):
             }
             serializer = WriteDocumentSerializer(data=data)
             if serializer.is_valid():
-                doc = serializer.save()
-                set_queue(doc.id)
-                return Response({"id": doc.id})
+                save_doc = serializer.save()
+                set_queue(save_doc.id)
+                return Response({"id": save_doc.id})
             else:
                 return Response({"id": None}, status=403)
         except:
@@ -272,7 +307,6 @@ class CheckStatus(APIView):
     authentication_classes = []
     """
     check the user detection status
-    1. 检查
     """
 
     def get(self, request: Request):
@@ -284,20 +318,14 @@ class CheckStatus(APIView):
             return Response({"code": "30001", "msg": "Not account"})
 
         doc = Document.objects.filter(user=user).defer("file").order_by("-id")
-        count = doc.count()
 
         first = doc.first()
         if not first:
             return Response({"code": 200, "status": 0})
-        result = first.result
-        corethril = result.get("corethril")
-        core_slither = result.get("core_slither")
-
-        if doc.filter(result={}).exists() or (not corethril and corethril != []) or (not core_slither and core_slither != []):
-            return Response({"code": 200, "status": 1, "msg": "one is currently being detected", "id": first.id})
-
-        if count >= number_of_detection:
-            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
+        # 检查
+        status, resp = checkstatus(doc, first.result)
+        if not status:
+            return Response(resp)
         return Response({"code": 200, "status": 0})
 
 
