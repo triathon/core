@@ -84,6 +84,15 @@ def handle(req):
         return result
 
 
+def save_error(error, did):
+    data_db = Document.select().where(Document.id == did).first()
+    if data_db:
+        db_result = data_db.result
+        db_result["coremythril_error"] = error
+        data_db.result = db_result
+        data_db.save()
+
+
 def run():
     print("thril start of testing...")
     conn_pool = redis.ConnectionPool(
@@ -103,7 +112,8 @@ def run():
                 print("db contract index {} :".format(contract_id))
                 result = handle(contract_id)
                 print("result: {}".format(result))
-                if result != "Done, clean up and exit...":
+                if result != "Detection succeeded":
+                    save_error(str(result), contract_id)
                     rc.hset(rcSetKey, f"{contract_id}error", str(result))
                     rc.hset(rcSetKey, f"{contract_id}status", "2")
                 else:
@@ -116,6 +126,7 @@ def run():
                 if int(count) >= 1:
                     continue
                 # tautology
+                save_error(str(e), contract_id)
                 rc.hset(rcSetKey, f"{contract_id}count", str(int(count)+1))
                 rc.hset(rcSetKey, f"{contract_id}error", str(e))
                 rc.hset(rcSetKey, f"{contract_id}status", "2")
