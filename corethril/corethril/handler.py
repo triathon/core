@@ -45,6 +45,7 @@ def analyzer(s_file):
     except Exception as err:
         if 'SolidityVersionMismatch' in err.__str__():
             return False, "Detection version mismatch"
+        return False, err
 
 
 def temporaryFile(data, s_id):
@@ -93,7 +94,7 @@ def run():
         db=DATA.redis_db,
     )
     rc = redis.Redis(connection_pool=conn_pool)
-
+    rcSetKey = DATA.task_queue+"Set"
     while True:
         id_list = rc.lrange(DATA.task_queue, 0, 4)
         if id_list:
@@ -102,10 +103,25 @@ def run():
                 print("db contract index {} :".format(contract_id))
                 result = handle(contract_id)
                 print("result: {}".format(result))
+                if result != "Done, clean up and exit...":
+                    rc.hset(rcSetKey, f"{contract_id}error", str(result))
+                    rc.hset(rcSetKey, f"{contract_id}status", "2")
+                else:
+                    rc.hset(rcSetKey, f"{contract_id}status", "1")
                 time.sleep(2)
             except Exception as e:
+                count = rc.hget(rcSetKey, f"{contract_id}count")
+                if not count:
+                    count = 0
+                if int(count) >= 1:
+                    continue
+                # tautology
+                rc.hset(rcSetKey, f"{contract_id}count", str(int(count)+1))
+                rc.hset(rcSetKey, f"{contract_id}error", str(e))
+                rc.hset(rcSetKey, f"{contract_id}status", "2")
+
                 rc.lpush(DATA.task_queue, contract_id)
-                print("tautology", e)
+                print("tautology:", contract_id)
         else:
             print("wait...")
             time.sleep(5)
