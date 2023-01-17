@@ -9,6 +9,7 @@ from hashlib import sha1
 
 from Crypto.Random import random
 from django.core.files.uploadedfile import SimpleUploadedFile as File
+from django.db.models import Count
 from django.http import FileResponse
 from django_redis import get_redis_connection
 from eth_account.messages import encode_defunct
@@ -29,51 +30,16 @@ from api.tools.contract_helper import fetch_contract_meta, write_contract
 from conf import config
 from api.tools.merge_contract import Merge
 from api.tools.rsc_func import rsaEncrypt, rsaDecrypt
+from api.tools.verify_submit_status import checkstatus
+from api.tools.detection_result import parseErrorResult
 
 rd = get_redis_connection()
-
-number_of_detection = config.number_of_detection
 
 
 def set_queue(d_id):
     rd.lpush(config.coreslither_queue, d_id)
     rd.lpush(config.corethril_queue, d_id)
     rd.lpush(config.coresmartian_queue, d_id)
-
-
-def check_whether_there_is_detect(doc, result):
-    """检查是否有正在检测中的
-    :param doc:
-    """
-    corethril = result.get("corethril")
-    core_slither = result.get("core_slither")
-
-    if doc.filter(result={}).exists():
-        return True
-    if not corethril and corethril != []:
-        return True
-    if not core_slither and core_slither != []:
-        return True
-    return False
-
-
-def check_detection_numberOfTimes(count):
-    """
-    检查检测次数是否超标
-    """
-    if count >= number_of_detection:
-        return True
-    return False
-
-
-def checkstatus(doc, result):
-    if check_whether_there_is_detect(doc, result):
-        first = doc.first()
-        return False, {"code": 200, "status": 1, "msg": "one is currently being detected", "id": first.id}
-
-    if check_detection_numberOfTimes(doc.count()):
-        return False, {"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"}
-    return True, ""
 
 
 # auth
@@ -389,6 +355,9 @@ class DetectionDetails(APIView):
         core_slither = result.get("core_slither")
         core_smartian = result.get("core_smartian")
         if (not corethril and corethril != []) or (not core_slither and core_slither != []):
+            status, err = parseErrorResult(did)
+            if status:
+                return Response({"code": 30001, "msg": err})
             return Response({"code": 200, "msg": "under detecting"})
 
         if not query.score:
@@ -415,26 +384,34 @@ class DetectionDetails(APIView):
 
             # query
             dr_query = DocumentResult.objects.filter(document=query)
-            document_count = dr_query.count()
             high_count = dr_query.filter(level="High").count()
             medium_count = dr_query.filter(level="Medium").count()
             low_count = dr_query.filter(level="Low").count()
-            total_detection = 89
-            # high = 39 + 6
-            # Medium = 27 + 3
-            # low = 14
-            score = (100/total_detection*low_count) + (50/total_detection*medium_count) - 5
-            if score < 0:
-                score = 0
+            # title classify
+            total_type_detection = 100
+            high_type_count = dr_query.filter(level="High").values("title").annotate(Count("title")).count()
+            medium_type_count = dr_query.filter(level="Medium").values("title").annotate(Count("title")).count()
+            low_type_count = dr_query.filter(level="Low").values("title").annotate(Count("title")).count()
+            pass_type_count = total_type_detection - high_type_count - medium_type_count - low_type_count
 
+            high_type_ratio = "%.2f" % (high_type_count / total_type_detection)
+            medium_type_ratio = "%.2f" % (medium_type_count / total_type_detection)
+            low_type_ratio = "%.2f" % (low_type_count / total_type_detection)
+            pass_type_ratio = "%.2f" % (pass_type_count / total_type_detection)
             score_ratio = {
                 "result": [
-                    {"type": "high", "count": high_count, "ratio": "%.2f" % (high_count / document_count)},
-                    {"type": "medium", "count": medium_count, "ratio": "%.2f" % (medium_count / document_count)},
-                    {"type": "low", "count": low_count, "ratio": "%.2f" % (low_count / document_count)},
+                    {"type": "high", "count": high_count, "ratio": high_type_ratio},
+                    {"type": "medium", "count": medium_count, "ratio": medium_type_ratio},
+                    {"type": "low", "count": low_count, "ratio": low_type_ratio},
+                    {"type": "pass", "count": pass_type_count, "ratio": pass_type_ratio},
                 ],
                 "time": int(time.time())
             }
+
+            # score = (100/total_detection*low_count) + (50/total_detection*medium_count) - 5
+            # if score < 0:
+            #     score = 0
+            score = float(high_type_ratio) + float(medium_type_ratio)
             query.score = "%.2f" % score
             query.score_ratio = score_ratio
             query.save()
