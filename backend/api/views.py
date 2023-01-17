@@ -9,6 +9,7 @@ from hashlib import sha1
 
 from Crypto.Random import random
 from django.core.files.uploadedfile import SimpleUploadedFile as File
+from django.db.models import Count
 from django.http import FileResponse
 from django_redis import get_redis_connection
 from eth_account.messages import encode_defunct
@@ -29,10 +30,10 @@ from api.tools.contract_helper import fetch_contract_meta, write_contract
 from conf import config
 from api.tools.merge_contract import Merge
 from api.tools.rsc_func import rsaEncrypt, rsaDecrypt
+from api.tools.verify_submit_status import checkstatus
+from api.tools.detection_result import parseErrorResult
 
 rd = get_redis_connection()
-
-number_of_detection = config.number_of_detection
 
 
 def set_queue(d_id):
@@ -112,12 +113,12 @@ class SubmitContractAddress(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request: Request):
-        doc = Document.objects.filter(user=self.request.user).defer("file")
-        if doc.filter(result={}).exists():
-            return Response({"code": 30001, "msg": "one is currently being detected"})
-        count = doc.count()
-        if count >= number_of_detection:
-            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
+        doc = Document.objects.filter(user=self.request.user).defer("file").order_by("-id")
+        first = doc.first()
+        if first:
+            status, resp = checkstatus(doc, first.result)
+            if not status:
+                return Response(resp)
 
         network, address = request.data['network'], request.data['address']
         if network not in ["eth", "bsc"]:
@@ -142,9 +143,9 @@ class SubmitContractAddress(APIView):
                 }
         serializer = WriteDocumentSerializer(data=data)
         if serializer.is_valid():
-            doc = serializer.save()
-            set_queue(doc.id)
-            return Response({"id": doc.id})
+            save_doc = serializer.save()
+            set_queue(save_doc.id)
+            return Response({"id": save_doc.id})
         else:
             print(serializer.errors, 'error')
             return Response({"id": None}, status=403)
@@ -156,12 +157,12 @@ class UploadContractFile(APIView):
     """
 
     def post(self, request: Request):
-        doc = Document.objects.filter(user=self.request.user).defer("file")
-        if doc.filter(result={}).exists():
-            return Response({"code": 30001, "msg": "one is currently being detected"})
-        count = doc.count()
-        if count >= number_of_detection:
-            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
+        doc = Document.objects.filter(user=self.request.user).defer("file").order_by("-id")
+        first = doc.first()
+        if first:
+            status, resp = checkstatus(doc, first.result)
+            if not status:
+                return Response(resp)
 
         upload_file = request.data.get("file")
         upload_file_name = upload_file.name
@@ -219,9 +220,9 @@ class UploadContractFile(APIView):
             }
             serializer = WriteDocumentSerializer(data=data)
             if serializer.is_valid():
-                doc = serializer.save()
-                set_queue(doc.id)
-                return Response({"id": doc.id})
+                save_doc = serializer.save()
+                set_queue(save_doc.id)
+                return Response({"id": save_doc.id})
             else:
                 return Response({"id": None}, status=403)
         except:
@@ -272,7 +273,6 @@ class CheckStatus(APIView):
     authentication_classes = []
     """
     check the user detection status
-    1. 检查
     """
 
     def get(self, request: Request):
@@ -284,20 +284,14 @@ class CheckStatus(APIView):
             return Response({"code": "30001", "msg": "Not account"})
 
         doc = Document.objects.filter(user=user).defer("file").order_by("-id")
-        count = doc.count()
 
         first = doc.first()
         if not first:
             return Response({"code": 200, "status": 0})
-        result = first.result
-        corethril = result.get("corethril")
-        core_slither = result.get("core_slither")
-
-        if doc.filter(result={}).exists() or (not corethril and corethril != []) or (not core_slither and core_slither != []):
-            return Response({"code": 200, "status": 1, "msg": "one is currently being detected", "id": first.id})
-
-        if count >= number_of_detection:
-            return Response({"code": 200, "status": 2, "msg": f"{number_of_detection} have been detected"})
+        # 检查
+        status, resp = checkstatus(doc, first.result)
+        if not status:
+            return Response(resp)
         return Response({"code": 200, "status": 0})
 
 
@@ -361,6 +355,9 @@ class DetectionDetails(APIView):
         core_slither = result.get("core_slither")
         core_smartian = result.get("core_smartian")
         if (not corethril and corethril != []) or (not core_slither and core_slither != []):
+            status, err = parseErrorResult(did)
+            if status:
+                return Response({"code": 30001, "msg": err})
             return Response({"code": 200, "msg": "under detecting"})
 
         if not query.score:
@@ -387,26 +384,34 @@ class DetectionDetails(APIView):
 
             # query
             dr_query = DocumentResult.objects.filter(document=query)
-            document_count = dr_query.count()
             high_count = dr_query.filter(level="High").count()
             medium_count = dr_query.filter(level="Medium").count()
             low_count = dr_query.filter(level="Low").count()
-            total_detection = 89
-            # high = 39 + 6
-            # Medium = 27 + 3
-            # low = 14
-            score = (100/total_detection*low_count) + (50/total_detection*medium_count) - 5
-            if score < 0:
-                score = 0
+            # title classify
+            total_type_detection = 100
+            high_type_count = dr_query.filter(level="High").values("title").annotate(Count("title")).count()
+            medium_type_count = dr_query.filter(level="Medium").values("title").annotate(Count("title")).count()
+            low_type_count = dr_query.filter(level="Low").values("title").annotate(Count("title")).count()
+            pass_type_count = total_type_detection - high_type_count - medium_type_count - low_type_count
 
+            high_type_ratio = "%.2f" % (high_type_count / total_type_detection)
+            medium_type_ratio = "%.2f" % (medium_type_count / total_type_detection)
+            low_type_ratio = "%.2f" % (low_type_count / total_type_detection)
+            pass_type_ratio = "%.2f" % (pass_type_count / total_type_detection)
             score_ratio = {
                 "result": [
-                    {"type": "high", "count": high_count, "ratio": "%.2f" % (high_count / document_count)},
-                    {"type": "medium", "count": medium_count, "ratio": "%.2f" % (medium_count / document_count)},
-                    {"type": "low", "count": low_count, "ratio": "%.2f" % (low_count / document_count)},
+                    {"type": "high", "count": high_count, "ratio": high_type_ratio},
+                    {"type": "medium", "count": medium_count, "ratio": medium_type_ratio},
+                    {"type": "low", "count": low_count, "ratio": low_type_ratio},
+                    {"type": "pass", "count": pass_type_count, "ratio": pass_type_ratio},
                 ],
                 "time": int(time.time())
             }
+
+            # score = (100/total_detection*low_count) + (50/total_detection*medium_count) - 5
+            # if score < 0:
+            #     score = 0
+            score = float(high_type_ratio) + float(medium_type_ratio)
             query.score = "%.2f" % score
             query.score_ratio = score_ratio
             query.save()

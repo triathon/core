@@ -57,7 +57,7 @@ class RequestMiddleware(MiddlewareMixin):
                 response.data = resp
             elif response.status_code == status.HTTP_400_BAD_REQUEST:
                 resp["code"] = response.status_code
-                resp["msg"] = f"参数缺失或不符合规范，请检查 {response.data}"
+                resp["msg"] = f"Parameter is missing or does not meet specifications, please check {response.data}"
                 # k = [k for k in response.data][0]
                 # resp["msg"] = f"{k}{response.data.get(k)[0]}"
                 if response.data[0]:
@@ -66,17 +66,17 @@ class RequestMiddleware(MiddlewareMixin):
                 response.data = resp
             elif response.status_code == status.HTTP_401_UNAUTHORIZED:
                 resp["code"] = response.status_code
-                resp["msg"] = "请登录"
+                resp["msg"] = "Please login"
                 resp["data"] = None
                 response.data = resp
             elif response.status_code == status.HTTP_403_FORBIDDEN:
                 resp["code"] = response.status_code
-                resp["msg"] = "暂无权限，请联系管理员。"
+                resp["msg"] = "The service is busy, please try again"
                 resp["data"] = None
                 response.data = resp
             else:
                 resp["code"] = response.status_code
-                resp["msg"] = "后端走神儿了，请稍后再试"
+                resp["msg"] = "The service is busy, please try again"
                 resp["data"] = None
                 response.data = resp
             print(f'code:{response.status_code}')
@@ -98,7 +98,7 @@ class RequestMiddleware(MiddlewareMixin):
             resp["msg"] = "Login Failed"
         else:
             resp["code"] = status.HTTP_500_INTERNAL_SERVER_ERROR
-            resp["msg"] = f"后端拥挤，请稍后再试:{str(exception)}"
+            resp["msg"] = f"The service is busy, please try again:{str(exception)}"
         resp["data"] = None
         # logger.error(f"错误信息:{str(exception)}")
         response = JsonResponse(data=resp, status=status.HTTP_200_OK)
