@@ -52,7 +52,7 @@ class RequestMiddleware(MiddlewareMixin):
                 response.data = resp
             elif response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
                 resp["code"] = response.data.get("code", status.HTTP_500_INTERNAL_SERVER_ERROR)
-                resp["msg"] = response.data.get("detail", "")
+                resp["msg"] = response.data.get("msg", "")
                 resp["data"] = None
                 response.data = resp
             elif response.status_code == status.HTTP_400_BAD_REQUEST:

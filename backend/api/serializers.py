@@ -49,6 +49,13 @@ class DetectionLogSerializer(serializers.ModelSerializer):
         model = Document
         fields = ['id', 'file_name', 'contract_address', 'network', 'score']
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        network = ret.get("network")
+        if network:
+            ret['network'] = network.capitalize()
+        return ret
+
 
 class DocumentResultSerializer(serializers.ModelSerializer):
     class Meta:
