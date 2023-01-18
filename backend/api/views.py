@@ -225,8 +225,9 @@ class UploadContractFile(APIView):
                 return Response({"id": save_doc.id})
             else:
                 return Response({"id": None}, status=403)
-        except:
-            print(traceback.print_exc())
+        except Exception as e:
+            if "No such file or directory" in str(e):
+                return Response({"code": 30001, "msg": "Please upload right file (.sol)"}, status=500)
             return Response({"code": 30001, "msg": "Server error, please try again"}, status=500)
 
 
@@ -319,7 +320,15 @@ class DetectionLog(ListAPIView):
     """
     permission_classes = []
     authentication_classes = []
-    queryset = Document.objects.exclude(contract_address=None).exclude(score=None)
+    deWeight = """
+    select max(id), contract_address 
+        from api_document 
+    WHERE contract_address is NOT null and score is not null 
+    group by contract_address having count(*)>1
+    """
+    queryset = Document.objects.extra(where=[
+        'api_document.id in (%s)' % deWeight
+    ])
     serializer_class = DetectionLogSerializer
     pagination_class = MyPageNumberPagination
     ordering = ['-id']
