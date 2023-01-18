@@ -321,7 +321,7 @@ class DetectionLog(ListAPIView):
     permission_classes = []
     authentication_classes = []
     deWeight = """
-    select max(id), contract_address 
+    select max(id)
         from api_document 
     WHERE contract_address is NOT null and score is not null 
     group by contract_address having count(*)>1
