@@ -32,6 +32,7 @@ from api.tools.merge_contract import Merge
 from api.tools.rsc_func import rsaEncrypt, rsaDecrypt
 from api.tools.verify_submit_status import checkstatus
 from api.tools.detection_result import parseErrorResult
+from api.tools.deltaT import cal_time
 
 rd = get_redis_connection()
 
@@ -67,8 +68,6 @@ class AuthView(APIView):
 
         user.nonce = random.randint(100000, 1000000)
         user.save()
-        print(rec_address)
-        print(address)
         if address == rec_address:
             return Response({"token": str(AccessToken.for_user(user))})
         else:
@@ -305,7 +304,7 @@ class TotalDetection(APIView):
 
     def get(self, request: Request):
         count = Document.objects.exclude(contract_address=None).count()
-        return Response({"code": 200, "data": 2000+count})
+        return Response({"code": 200, "data": 2000 + count})
 
 
 class MyPageNumberPagination(PageNumberPagination):
@@ -367,6 +366,9 @@ class DetectionDetails(APIView):
             status, err = parseErrorResult(did)
             if status:
                 return Response({"code": 30001, "msg": err})
+            deltaT = cal_time(int(query.date), int(time.time()))
+            if deltaT >= config.detectionTimeout:
+                return Response({"code": 201, "msg": "under detecting"})
             return Response({"code": 200, "msg": "under detecting"})
 
         if not query.score:
