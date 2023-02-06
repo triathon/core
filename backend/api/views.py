@@ -359,15 +359,20 @@ class DetectionDetails(APIView):
             return Response({"code": 30001, "msg": "not contract"})
 
         result = query.result
-        corethril = result.get("corethril")
+        # corethril = result.get("corethril")
         core_slither = result.get("core_slither")
-        core_smartian = result.get("core_smartian")
+        # core_smartian = result.get("core_smartian")
         # if (not corethril and corethril != []) or (not core_slither and core_slither != []):
         if not core_slither and core_slither != []:
             status, err = parseErrorResult(did)
             if status:
                 return Response({"code": 30001, "msg": err})
             deltaT = cal_time(int(query.date), int(time.time()))
+            if deltaT >= (60 * 15):
+                result["coreslither_error"] = "Sorry, detection failed, please try again"
+                query.result = result
+                query.save()
+                return Response({"code": 30001, "msg": "Sorry, detection failed, please try again"})
             if deltaT >= config.detectionTimeout:
                 return Response({"code": 201, "msg": "under detecting"})
             return Response({"code": 200, "msg": "under detecting"})

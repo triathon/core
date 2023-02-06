@@ -16,9 +16,9 @@ number_of_detection = config.number_of_detection
 
 
 def checkstatus(doc, result):
-    """
+    """检查检测状态
     :return :
-        0没问题1正在检测2检测超次数
+        0等待检测1正在检测2检测超次数
     """
     if check_whether_there_is_detect(doc, result):
         first = doc.first()
@@ -28,7 +28,7 @@ def checkstatus(doc, result):
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     last = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d'))) - 1
     count = doc.filter(date__gte=zero, date__lte=last).count()
-    print("几次", count)
+
     if check_detection_numberOfTimes(count):
         return False, {"code": 200, "status": 2,
                        "msg": f"This version is limited to three times a day, please try again tomorrow"}
@@ -41,11 +41,14 @@ def check_whether_there_is_detect(doc, result):
     """
     core_slither = result.get("core_slither")
 
+    # if result null
     if doc.filter(result={}).exists():
         return True
+    # whether there is an error message
     status, _ = detection_result.parseErrorResult(doc.first().id)
     if status:
         return False
+    # null test result
     if not core_slither and core_slither != []:
         return True
     return False
