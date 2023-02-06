@@ -43,11 +43,11 @@ def check_whether_there_is_detect(doc, result):
 
     if doc.filter(result={}).exists():
         return True
-    if not core_slither and core_slither != []:
-        return True
     status, _ = detection_result.parseErrorResult(doc.first().id)
     if status:
         return False
+    if not core_slither and core_slither != []:
+        return True
     return False
 
 
