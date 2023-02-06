@@ -48,13 +48,6 @@ def parseErrorResult(did) -> (bool, str):
         if thril_status == "2":
             mythril_error = rd.hget(rd_thril_key, f"{did}error")
             result["coremythril_error"] = mythril_error
-            count += 1
-            if error == "":
-                error = mythril_error
-    else:
-        count += 1
-        if error == "":
-            error = result.get("coremythril_error")
 
     # smartian
     rd_smartian_key = config.coresmartian_queue+"Set"

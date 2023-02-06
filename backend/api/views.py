@@ -362,7 +362,8 @@ class DetectionDetails(APIView):
         corethril = result.get("corethril")
         core_slither = result.get("core_slither")
         core_smartian = result.get("core_smartian")
-        if (not corethril and corethril != []) or (not core_slither and core_slither != []):
+        # if (not corethril and corethril != []) or (not core_slither and core_slither != []):
+        if not core_slither and core_slither != []:
             status, err = parseErrorResult(did)
             if status:
                 return Response({"code": 30001, "msg": err})
@@ -373,15 +374,6 @@ class DetectionDetails(APIView):
 
         if not query.score:
             # 处理检测数据
-            for i in corethril:
-                res_data = {
-                    "document_id": did,
-                    "title": i.get("title"),
-                    "level": i.get("severity"),
-                    "description": i.get("description"),
-                    "details": i
-                }
-                DocumentResult.objects.get_or_create(**res_data)
 
             for i in core_slither:
                 res_data = {
