@@ -52,8 +52,10 @@ def version_vif(version):
     #     installed_ver = version
     #     solcx.install_solc(version)
     # switch_global_version(installed_ver)
+    if not installed_ver:
+        return False, "The compiler version is incorrect"
     switch_global_version(installed_ver)
-    return
+    return True, ""
 
 
 def handle(req):
@@ -69,7 +71,9 @@ def handle(req):
 
     version = re.search("pragma solidity ([\d.^|\d.=|\d.>=|\d.>]*)", data.contract)
     if version:
-        version_vif(version)
+        status, msg = version_vif(version)
+        if not status:
+            return msg
     with NamedTemporaryFile('w+t', suffix=".sol") as f:
         f.write(data.contract)
         f.seek(0)
@@ -173,6 +177,7 @@ def run():
                     rc.hset(rcSetKey, f"{contract_id}status", "1")
                 time.sleep(2)
             except Exception as e:
+                print("error:", e)
                 count = rc.hget(rcSetKey, f"{contract_id}count")
                 if not count:
                     count = 0
