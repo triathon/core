@@ -35,7 +35,7 @@ contract_security_key = (
     "is_proxy", "is_mintable", "can_take_back_ownership", "owner_change_balance",
     "hidden_owner", "selfdestruct", "external_call",
 )
-contract_high_stake = ("is_open_source", "is_proxy", "owner_change_balance", "selfdestruct",)
+contract_high_stake = ("is_proxy", "owner_change_balance", "selfdestruct",)
 contract_medium_risk = ("is_mintable", "can_take_back_ownership", "hidden_owner", "external_call",)
 
 trading_security_key = (
@@ -70,6 +70,14 @@ async def get_dict(dict_keys, data):
     return result
 
 
+async def get_risk_count(dict_keys, data):
+    count = 0
+    for k in dict_keys:
+        if data.get(k) == "1":
+            count += 1
+    return count
+
+
 async def save_token_detection_result(content, token_address, user_detection_id):
     """
     save token detection result
@@ -95,13 +103,26 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         contract_security = {'is_open_source': "0"}
         cs_result = await get_dict(contract_security_key, result)
         contract_security = dict(contract_security, **cs_result)
+        contract_security["high_stake"] = await get_risk_count(contract_high_stake, result)
+        contract_security["medium_risk"] = await get_risk_count(contract_medium_risk, result)
 
+        tax_risk_type = 0
         if result.get("is_in_dex") == 0:
             trading_security = {"buy_tax": 0, "sell_tax": 0}
         else:
-            trading_security = {"buy_tax": result.get("buy_tax"), "sell_tax": result.get("sell_tax")}
+            buy_tax = result.get("buy_tax")
+            sell_tax = result.get("sell_tax")
+            trading_security = {"buy_tax": buy_tax, "sell_tax": sell_tax}
+            if float(buy_tax)*100 > 1 or float(sell_tax)*100 > 1:
+                tax_risk_type = 2
+            if float(buy_tax)*100 > 0 or float(sell_tax)*100 > 0:
+                tax_risk_type = 1
         ts_result = await get_dict(trading_security_key, result)
         trading_security = dict(trading_security, **ts_result)
+        trading_high_stake_count = await get_risk_count(trading_high_stake, result)
+        trading_medium_risk_count = await get_risk_count(trading_medium_risk, result)
+        trading_security["high_stake"] = trading_high_stake_count+1 if tax_risk_type == 2 else trading_high_stake_count
+        trading_security["medium_risk"] = trading_medium_risk_count+1 if tax_risk_type == 1 else trading_medium_risk_count
 
         token.logo = result.get("token_symbol")
         token.name = result.get("token_name")
@@ -130,6 +151,8 @@ async def token_detection_details(query):
     get token detection details
     """
     token_query = await models.TokenDetection.filter(user_detection_id=query.id).first()
+
+    # percent +
     top10_holders = token_query.top10_holders.get("result")
     top10_lp_token = token_query.top10_lp_token.get("result")
     top10_holders_percent = 0
@@ -140,8 +163,30 @@ async def token_detection_details(query):
     if top10_lp_token:
         for i in top10_lp_token:
             top10_lp_token_percent += float(i.get("percent"))
+
+    # time utc
     time_struct = int(time.mktime(query.create_time.timetuple()))
     utc_time = datetime.datetime.utcfromtimestamp(time_struct-28800).strftime("UTC %d/%m/%Y %H:%M:%S")
+
+    # risk
+    if token_query.contract_security:
+        high_risk = token_query.contract_security.get("high_stake", 0)
+        medium_risk = token_query.contract_security.get("medium_risk", 0)
+        if token_query.trading_security:
+            high_risk += token_query.trading_security.get("high_stake", 0)
+            medium_risk += token_query.trading_security.get("medium_risk", 0)
+    else:
+        high_risk = 0
+        medium_risk = 0
+
+    if high_risk == 0 and medium_risk > 0:
+        risk_outcome = "1"  # medium risk
+    elif high_risk > 0:
+        risk_outcome = "2"  # high risk
+    else:
+        risk_outcome = "0"  # low risk
+
+    # result
     result = {
         "id": token_query.id,
         "detection_user": query.user_address,
@@ -164,6 +209,9 @@ async def token_detection_details(query):
         },
         "contract_security": token_query.contract_security,
         "trading_security": token_query.trading_security,
+        "high_risk": high_risk,
+        "medium_risk": medium_risk,
+        "risk_outcome": risk_outcome
     }
     return result
 
