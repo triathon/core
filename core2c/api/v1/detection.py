@@ -39,11 +39,11 @@ contract_high_stake = ("is_open_source", "is_proxy", "owner_change_balance", "se
 contract_medium_risk = ("is_mintable", "can_take_back_ownership", "hidden_owner", "external_call",)
 
 trading_security_key = (
-    "is_honeypot", "transfer_pausable", "is_honeypotcannot_sell_all", "cannot_buy",
+    "is_honeypot", "transfer_pausable", "cannot_sell_all", "cannot_buy",
     "trading_cooldown", "is_anti_whale", "anti_whale_modifiable", "slippage_modifiable",
     "is_blacklisted", "is_whitelisted", "personal_slippage_modifiable",
 )
-trading_high_stake = ("is_honeypot", "transfer_pausable", "is_honeypotcannot_sell_all", "slippage_modifiable", "personal_slippage_modifiable")
+trading_high_stake = ("is_honeypot", "transfer_pausable", "cannot_sell_all", "slippage_modifiable", "personal_slippage_modifiable")
 trading_medium_risk = ("cannot_buy", "trading_cooldown", "is_anti_whale", "anti_whale_modifiable", "is_blacklisted", "is_whitelisted")
 
 
@@ -92,7 +92,7 @@ async def save_token_detection_result(content, token_address, user_detection_id)
             await token.save()
             return False, _, msg
 
-        contract_security = {'is_open_source': is_open_source}
+        contract_security = {'is_open_source': "0"}
         cs_result = await get_dict(contract_security_key, result)
         contract_security = dict(contract_security, **cs_result)
 
