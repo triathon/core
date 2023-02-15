@@ -238,7 +238,7 @@ async def status(
     data = {"status": "0"}
     user_detection = await models.UserDetection.filter(user_address=user_address, status="0").first()
     if user_detection:
-        data = {"status": "1", "address": user_detection.address}
+        data = {"status": "1", "address": user_detection.address, "chain": user_detection.chain}
     return await success(data)
 
 
@@ -285,11 +285,11 @@ async def token_detection(
         return await error_found(msg)
 
 
-@detection_router.get("/token_detection/{token}")
+@detection_router.get("/token_detection/{pk}")
 async def get_token_detection(
-        token: str
+        pk: str
 ):
-    query = await models.UserDetection.filter(address=token, type=1).order_by("-id").first()
+    query = await models.UserDetection.filter(id=pk, type=1).order_by("-id").first()
     if not query:
         return await error_found("not token address")
     if query.status == "0":
