@@ -90,13 +90,13 @@ async def save_token_detection_result(content, token_address, user_detection_id)
     try:
         result = content.get("result").get(token_address.lower())
         if not result:
-            msg = "Something wrong,please enter the correct Token address."
+            msg = "Something wrong, please check（There may be the following reasons: wrong chain, wrong address, the contract is not open source）"
             token.error = msg
             await token.save()
             return False, _, msg
         is_open_source = result.get("is_open_source")
         if is_open_source == "0":
-            msg = "This contract has not been open-sourced yet"
+            msg = "Something wrong, please check（There may be the following reasons: wrong chain, wrong address, the contract is not open source）"
             token.error = msg
             await token.save()
             return False, _, msg
