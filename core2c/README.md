@@ -29,4 +29,4 @@ path: /db/migrations/001_20230215_2323/schema.sql
 
 ## 4 配置
 
-/conf/config.json
+/conf/conf.json
