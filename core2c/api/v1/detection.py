@@ -224,8 +224,8 @@ async def total():
     """
     detection total
     """
-    total = await models.TokenDetection.all().count()
-    return await success({"total": 3000 + int(total)})
+    count = await models.TokenDetection.all().count()
+    return await success({"total": 3000 + int(count)})
 
 
 @detection_router.get("/detection_status")
@@ -289,13 +289,13 @@ async def token_detection(
 async def get_token_detection(
         pk: str
 ):
-    query = await models.UserDetection.filter(id=pk, type=1).order_by("-id").first()
-    if not query:
+    token_query = await models.TokenDetection.filter(id=pk).order_by("-id").first()
+    if not token_query:
         return await error_found("not token address")
+    query = await models.UserDetection.filter(id=token_query.user_detection_id, type=1).order_by("-id").first()
     if query.status == "0":
         return await error_found("be testing")
     elif query.status == "2":
-        token = await models.TokenDetection.filter(user_detection_id=query.id).first()
-        return await error_found(token.error)
+        return await error_found(token_query.error)
     result = await token_detection_details(query)
     return await success(result)
