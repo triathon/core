@@ -5,4 +5,4 @@ RUN apt-get update && \
     apt-get install gcc libpq-dev -y &&\
     python -m pip install --upgrade pip && \
     pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-CMD ["sh", "-c", "cd /app/api/ && uvicorn web:app --port 8000 --reload"]
+CMD ["sh", "-c", "cd /app/api/ && uvicorn web:app --host 0.0.0.0 --port 8000 --reload"]
