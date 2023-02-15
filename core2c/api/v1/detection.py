@@ -26,6 +26,7 @@ chain_type = {
     "Tron": "tron",
     "Polygon": "137",
     "Avalanche": "43114",
+    "Optimism": "10",
 }
 
 goplus_api = "https://api.gopluslabs.io/api/v1/token_security/{chain}?contract_addresses={token_address}"
