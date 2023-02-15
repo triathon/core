@@ -90,13 +90,13 @@ async def save_token_detection_result(content, token_address, user_detection_id)
     try:
         result = content.get("result").get(token_address.lower())
         if not result:
-            msg = "Something wrong,please enter the correct Token address."
+            msg = "Something wrong, please check（There may be the following reasons: wrong chain, wrong address, the contract is not open source）"
             token.error = msg
             await token.save()
             return False, _, msg
         is_open_source = result.get("is_open_source")
         if is_open_source == "0":
-            msg = "This contract has not been open-sourced yet"
+            msg = "Something wrong, please check（There may be the following reasons: wrong chain, wrong address, the contract is not open source）"
             token.error = msg
             await token.save()
             return False, _, msg
@@ -111,12 +111,12 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         if result.get("is_in_dex") == 0:
             trading_security = {}
         else:
-            buy_tax = result.get("buy_tax")
-            sell_tax = result.get("sell_tax")
+            buy_tax = result.get("buy_tax", '0')
+            sell_tax = result.get("sell_tax", '0')
             trading_security = {"buy_tax": buy_tax, "sell_tax": sell_tax}
             if float(buy_tax)*100 > 1 or float(sell_tax)*100 > 1:
                 tax_risk_type = 2
-            if float(buy_tax)*100 > 0 or float(sell_tax)*100 > 0:
+            elif float(buy_tax)*100 > 0 or float(sell_tax)*100 > 0:
                 tax_risk_type = 1
         ts_result = await get_dict(trading_security_key, result)
         trading_security = dict(trading_security, **ts_result)
@@ -143,6 +143,8 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         await token.save()
         return True, token, "ok"
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         logger.error("save_token_detection_result error: %s" % str(e))
         return False, _, _
 
