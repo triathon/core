@@ -169,7 +169,7 @@ async def token_detection_details(query):
 
     # time utc
     time_struct = int(time.mktime(query.create_time.timetuple()))
-    utc_time = datetime.datetime.utcfromtimestamp(time_struct-28800).strftime("UTC %d/%m/%Y %H:%M:%S")
+    utc_time = datetime.datetime.utcfromtimestamp(time_struct).strftime("UTC %d/%m/%Y %H:%M:%S")
 
     # risk
     if token_query.contract_security:
@@ -276,6 +276,7 @@ async def token_detection(
     if not content:
         return await error_found("detection failure")
     status, _, msg = await save_token_detection_result(content, token_address, user_detection.id)
+    user_detection.create_time = datetime.datetime.now()
     if status:
         user_detection.status = "1"
         await user_detection.save()
