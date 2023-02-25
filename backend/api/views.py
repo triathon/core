@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import sys
@@ -27,12 +28,13 @@ from api.models import Document, User, DocumentResult
 from api.serializers import WriteDocumentSerializer, ReadDocumentSerializer, DetectionLogSerializer, \
     DocumentResultSerializer
 from api.tools.contract_helper import fetch_contract_meta, write_contract
-from conf import config
+from conf import config, detect_item_path
 from api.tools.merge_contract import Merge
 from api.tools.rsc_func import rsaEncrypt, rsaDecrypt
 from api.tools.verify_submit_status import checkstatus
 from api.tools.detection_result import parseErrorResult
 from api.tools.deltaT import cal_time
+from api.tools.detect_item import parse_excel
 
 rd = get_redis_connection()
 
@@ -437,4 +439,141 @@ class DetectionDetails(APIView):
             "score_ratio": query.score_ratio,
             "list": query_data.data
         }
+        return Response(data)
+
+
+class DetectionDetails2(APIView):
+    """
+    检测详情
+    """
+    permission_classes = []
+    authentication_classes = []
+
+    def get(self, request):
+        did = request.GET.get("id")
+        if not did:
+            return Response({"code": 30001, "msg": "not id"})
+        query = Document.objects.filter(id=did).first()
+        if not query:
+            return Response({"code": 30001, "msg": "not contract"})
+
+        result = query.result
+        core_slither = result.get("core_slither")
+        if not core_slither and core_slither != []:
+            status, err = parseErrorResult(did)
+            if status:
+                return Response({"code": 30001, "msg": err})
+            deltaT = cal_time(int(query.date), int(time.time()))
+            error_msg = "Sorry, detection failed, please try again"
+            if deltaT >= (60 * 15):
+                result["coreslither_error"] = error_msg
+                query.result = result
+                query.save()
+                return Response({"code": 30001, "msg": error_msg})
+            if deltaT >= config.detectionTimeout:
+                return Response({"code": 201, "msg": "under detecting"})
+            return Response({"code": 200, "msg": "under detecting"})
+
+        if not query.score:
+            # 处理检测数据
+
+            for i in core_slither:
+                res_data = {
+                    "document_id": did,
+                    "title": i.get("check"),
+                    "level": i.get("confidence"),
+                    "description": i.get("description"),
+                    "details": i
+                }
+                DocumentResult.objects.get_or_create(**res_data)
+
+            # query
+            dr_query = DocumentResult.objects.filter(document=query)
+            high_count = dr_query.filter(level="High").count()
+            medium_count = dr_query.filter(level="Medium").count()
+            low_count = dr_query.filter(level="Low").count()
+            # title classify
+            total_type_detection = 100
+            high_type_count = dr_query.filter(level="High").values("title").annotate(Count("title")).count()
+            medium_type_count = dr_query.filter(level="Medium").values("title").annotate(Count("title")).count()
+            low_type_count = dr_query.filter(level="Low").values("title").annotate(Count("title")).count()
+            pass_type_count = total_type_detection - high_type_count - medium_type_count - low_type_count
+
+            high_type_ratio = "%.2f" % (high_type_count / total_type_detection)
+            medium_type_ratio = "%.2f" % (medium_type_count / total_type_detection)
+            low_type_ratio = "%.2f" % (low_type_count / total_type_detection)
+            pass_type_ratio = "%.2f" % (pass_type_count / total_type_detection)
+            score_ratio = {
+                "result": [
+                    {"type": "high", "count": high_count, "ratio": high_type_ratio},
+                    {"type": "medium", "count": medium_count, "ratio": medium_type_ratio},
+                    {"type": "low", "count": low_count, "ratio": low_type_ratio},
+                    {"type": "pass", "count": pass_type_count, "ratio": pass_type_ratio},
+                ],
+                "time": int(time.time())
+            }
+
+            # score = (100/total_detection*low_count) + (50/total_detection*medium_count) - 5
+            # if score < 0:
+            #     score = 0
+            score = float(high_type_ratio) + float(medium_type_ratio)
+            query.score = "%.2f" % score
+            query.score_ratio = score_ratio
+            query.save()
+        else:
+            dr_query = DocumentResult.objects.filter(document=query)
+
+        # level sort
+        pk_list = ["High", "Medium", "Low"]
+        ordering = f"position(level in '{','.join(level for level in pk_list)}')"
+        dr_query = dr_query.extra(select={"ordering": ordering}).order_by("ordering")
+        problems_number = len(dr_query)
+
+        # detect item
+        _, item_res = parse_excel(detect_item_path)
+        # grouping
+        findings = {}
+        for i in dr_query:
+            if findings.get(i.title):
+                findings[i.title]["recommend"].append(i.description)
+            else:
+                item_title = item_res[i.title]
+                findings[i.title] = {
+                    "id": f"TSP-{item_title['id']}",
+                    "level": i.level,
+                    "description": item_title['description'],
+                    "recommend": [i.description]
+                }
+
+        # deWeight
+        dr_query = dr_query.values("title").annotate(count=Count("title"))
+        # serialize
+        query_data = DocumentResultSerializer(dr_query, many=True)
+
+        # utc time
+        time_struct = query.score_ratio.pop("time", query.date)
+        utc_time_title = datetime.datetime.utcfromtimestamp(time_struct - 28800).strftime("%B %dth %Y")
+        utc_time = datetime.datetime.utcfromtimestamp(time_struct - 28800).strftime("UTC %Y-%m-%d %H:%M:%S")
+
+        # data
+        data = {
+            "executive": {
+                "title_time": utc_time_title,
+                "type": "Token",  # todo: no done
+                "time": utc_time,
+                "language": "Solidity",
+                "chian": query.network,
+                "methods": "Slither&Mythril analysis framework",
+                "code_source": f"/download/{did}",
+                "certificate_code": "0x{:02X}".format(int(did)),
+                "issues": query.score_ratio.get("result"),
+            },
+            "summary": {
+                "contract_name": query.file_name,
+                "problems_number": problems_number,
+                "info": query_data.data
+            },
+            "findings": findings
+        }
+
         return Response(data)

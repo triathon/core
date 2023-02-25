@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from conf import detect_item_path
+from api.tools.detect_item import parse_excel
 from .models import Document, DocumentResult
 
 
@@ -60,4 +62,13 @@ class DetectionLogSerializer(serializers.ModelSerializer):
 class DocumentResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentResult
-        fields = ('id', 'title', 'level', 'description')
+        fields = ('title',)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        _, res = parse_excel(detect_item_path)
+        item = res.get(ret.get("title"))
+        if item:
+            ret["id"] = f"TSP-{item.get('id')}"
+            ret["level"] = item.get('confidence')
+        return ret
