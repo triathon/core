@@ -125,3 +125,4 @@ zipp==3.11.0
 zope.interface==5.5.2
 django-cors-headers==3.13.0
 rsa==4.9
+xlrd==1.2.0

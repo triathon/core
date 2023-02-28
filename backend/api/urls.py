@@ -19,6 +19,6 @@ urlpatterns = [
     path('api/v1/check_status', CheckStatus.as_view()),
     path('api/v1/total', TotalDetection.as_view()),
     path('api/v1/history', DetectionLog.as_view()),
-    path('api/v1/details', DetectionDetails.as_view()),
+    path('api/v1/details', DetectionDetails2.as_view()),
 
 ]
