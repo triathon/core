@@ -20,9 +20,9 @@ def parse_excel(file_path):
     result_dict = {}
     for index in range(1, sh.nrows):
         line = sh.row_values(index)
-        result_dict[line[1][1:-1]] = {
-            "id": line[0],
-            "description": line[2].split("](")[0][1:],
+        result_dict[line[1]] = {
+            "id": int(line[0]),
+            "description": line[2],
             "impact": line[3],
             "confidence": line[4]
         }
@@ -32,4 +32,3 @@ def parse_excel(file_path):
 if __name__ == '__main__':
     file_path = "D:/project/core/backend/conf/detect_item.xlsx"
     status, res = parse_excel(file_path)
-
