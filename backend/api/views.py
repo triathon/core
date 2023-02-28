@@ -555,16 +555,23 @@ class DetectionDetails2(APIView):
         utc_time_title = datetime.datetime.utcfromtimestamp(time_struct - 28800).strftime("%B %dth %Y")
         utc_time = datetime.datetime.utcfromtimestamp(time_struct - 28800).strftime("UTC %Y-%m-%d %H:%M:%S")
 
+        # contract type
+        contract_type = "General"
+        if "IERC20" in query.contract:
+            contract_type = "Token"
+        elif "IERC721" in query.contract:
+            contract_type = "NFT"
+
         # data
         data = {
             "executive": {
                 "title_time": utc_time_title,
-                "type": "Token",  # todo: no done
+                "type": contract_type,
                 "time": utc_time,
                 "language": "Solidity",
                 "chian": query.network,
                 "methods": "Slither&Mythril analysis framework",
-                "code_source": f"/download/{did}",
+                # "code_source": f"/download/?id={did}",
                 "certificate_code": "0x{:02X}".format(int(did)),
                 "issues": query.score_ratio.get("result"),
             },
