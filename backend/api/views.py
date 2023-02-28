@@ -531,54 +531,54 @@ class DetectionDetails2(APIView):
 
         # detect item
         _, item_res = parse_excel(detect_item_path)
-        # grouping
+        # summary_info
+        summary_info = []
+        # classify
         findings = {}
         for i in dr_query:
-            if findings.get(i.title):
-                findings[i.title]["recommend"].append(i.description)
+            det_title = i.title
+            if findings.get(det_title):
+                findings[det_title]["recommend"].append(i.description)
             else:
-                item_title = item_res[i.title]
-                findings[i.title] = {
-                    "id": f"TSP-{item_title['id']}",
-                    "level": i.level,
+                item_title = item_res[det_title]
+                det_id = f"TSP-{item_title['id']}"
+                det_level = i.level
+
+                findings[det_title] = {
+                    "id": det_id,
+                    "level": det_level,
                     "description": item_title['description'],
                     "recommend": [i.description]
                 }
-
-        # deWeight
-        dr_query = dr_query.values("title").annotate(count=Count("title"))
-        # serialize
-        query_data = DocumentResultSerializer(dr_query, many=True)
+                #
+                summary_info.append({
+                    "id": det_id,
+                    "title": det_title,
+                    "level": det_level
+                })
 
         # utc time
         time_struct = query.score_ratio.pop("time", query.date)
-        utc_time_title = datetime.datetime.utcfromtimestamp(time_struct - 28800).strftime("%B %dth %Y")
-        utc_time = datetime.datetime.utcfromtimestamp(time_struct - 28800).strftime("UTC %Y-%m-%d %H:%M:%S")
-
-        # contract type
-        contract_type = "General"
-        if "IERC20" in query.contract:
-            contract_type = "Token"
-        elif "IERC721" in query.contract:
-            contract_type = "NFT"
+        utc_time_title = datetime.datetime.utcfromtimestamp(time_struct).strftime("%B %dth %Y")
+        utc_time = datetime.datetime.utcfromtimestamp(time_struct).strftime("UTC %Y-%m-%d %H:%M:%S")
 
         # data
         data = {
             "executive": {
+                "contract_address": query.contract_address,
                 "title_time": utc_time_title,
-                "type": contract_type,
+                "type": "Token",
                 "time": utc_time,
                 "language": "Solidity",
                 "chian": query.network,
                 "methods": "Slither&Mythril analysis framework",
-                # "code_source": f"/download/?id={did}",
                 "certificate_code": "0x{:02X}".format(int(did)),
                 "issues": query.score_ratio.get("result"),
             },
             "summary": {
-                "contract_name": query.file_name,
+                "contract_name": query.file_name.split(".")[0],
                 "problems_number": problems_number,
-                "info": query_data.data
+                "info": summary_info
             },
             "findings": findings
         }
