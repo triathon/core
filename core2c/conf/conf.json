@@ -3,5 +3,10 @@
   "db_port": "5432",
   "db_name": "core2c",
   "db_user": "postgres",
-  "db_password": "123456"
+  "db_password": "123456",
+
+  "goplus_api": {
+    "token_approval_security": "https://api.gopluslabs.io/api/v2/token_approval_security/{chain}?addresses={addresses}",
+    "nft721_approval_security": "http://api.gopluslabs.io/api/v2/nft721_approval_security/{chain}?addresses={addresses}"
+  }
 }
