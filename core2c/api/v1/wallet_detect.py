@@ -51,6 +51,8 @@ async def token_process_data(content):
     """
     token process data
     """
+    if not content:
+        return False, "not result"
     content_result = content.get("result")
     if not content_result:
         return False, "not result"
@@ -105,6 +107,8 @@ async def nft721_process_data(content):
     """
     nft721 process data
     """
+    if not content:
+        return False, "not result"
     content_result = content.get("result")
     if not content_result:
         return False, "not result"
