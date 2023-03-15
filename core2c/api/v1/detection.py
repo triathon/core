@@ -238,7 +238,7 @@ async def status(
     get detection status
     """
     data = {"status": "0"}
-    user_detection = await models.UserDetection.filter(user_address=user_address, status="0").first()
+    user_detection = await models.UserDetection.filter(user_address=user_address, status="0", type=1).first()
     if user_detection:
         data = {"status": "1", "address": user_detection.address, "chain": user_detection.chain}
     return await success(data)

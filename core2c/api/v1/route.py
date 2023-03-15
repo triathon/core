@@ -8,8 +8,10 @@
 from fastapi.routing import APIRouter
 
 from api.v1.detection import detection_router
+from api.v1.wallet_detect import wallet_detect_router
 
 
 v1_route = APIRouter(prefix="/api/v1")
 
 v1_route.include_router(detection_router)
+v1_route.include_router(wallet_detect_router)
