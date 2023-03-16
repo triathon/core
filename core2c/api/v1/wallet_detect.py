@@ -176,20 +176,6 @@ async def total():
     return await success({"total": 2000 + int(count)})
 
 
-# @wallet_detect_router.get("/status")
-# async def status(
-#         user_address: str
-# ):
-#     """
-#     get detection status
-#     """
-#     data = {"status": "0"}
-#     user_detection = await models.UserDetection.filter(user_address=user_address, status="0", type=2).first()
-#     if user_detection:
-#         data = {"status": "1", "address": user_detection.address, "chain": user_detection.chain}
-#     return await success(data)
-
-
 @wallet_detect_router.post('/detect')
 async def token_detection(
         user_address: str = Body(None),
@@ -220,8 +206,6 @@ async def token_detection(
     )
 
     status, result = await get_detect_result(chain_id, user_address, option)
-    if not status:
-        return await error_found("detection failure")
     if status:
         user_detection.status = "1"
         await user_detection.save()
@@ -229,4 +213,4 @@ async def token_detection(
     else:
         user_detection.status = "2"
         await user_detection.save()
-        return await error_found(result)
+        return await success({})
