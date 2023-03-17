@@ -62,6 +62,7 @@ async def token_process_data(content):
     for v in content_result:
         chain_id = v.get("chain_id", 56)
         token_name = v.get("token_name")
+        token_address = v.get("token_address")
         token_symbol = v.get("token_symbol")
         balance = v.get("balance")
         for item in v.get("approved_list"):
@@ -82,6 +83,7 @@ async def token_process_data(content):
                 "contract": contract,
                 "chain": chain_id,
                 "token": token_name,
+                "token_address": token_address,
                 "token_symbol": token_symbol,
                 "balance": balance,
                 "approved_amount": approved_amount,
@@ -118,6 +120,7 @@ async def nft721_process_data(content):
     for v in content_result:
         chain_id = v.get("chain_id", 56)
         nft_name = v.get("nft_name")
+        nft_address = v.get("nft_address")
         nft_symbol = v.get("nft_symbol")
         for item in v.get("approved_list"):
             contract = item.get("approved_contract")
@@ -137,6 +140,7 @@ async def nft721_process_data(content):
                 "contract": contract,
                 "chain": chain_id,
                 "nft_name": nft_name,
+                "nft_address": nft_address,
                 "nft_symbol": nft_symbol,
                 "approved_amount": approved_amount,
                 "advice": 0 if risk < 1 else 1,
@@ -163,6 +167,24 @@ async def get_detect_result(chain_id, user_address, option):
     else:
         status, result = await nft721_detect_result(chain_id, user_address)
     return status, result
+
+
+async def detect_create_table_and_to_result(user_address, chain, chain_id, option=2):
+    user_detection, _ = await models.UserDetection.get_or_create(
+        address=user_address,
+        user_address=user_address,
+        chain=chain,
+        type=option,
+        create_time=datetime.datetime.now()
+    )
+
+    status, result = await get_detect_result(chain_id, user_address, option)
+    if status:
+        user_detection.status = "1"
+    else:
+        user_detection.status = "2"
+    await user_detection.save()
+    return result
 
 # -- api
 
@@ -197,20 +219,33 @@ async def token_detection(
     if option not in [2, 3]:
         return await error_found("Please enter the correct selection")
 
-    user_detection, _ = await models.UserDetection.get_or_create(
-        address=user_address,
-        user_address=user_address,
-        chain=chain,
-        type=option,
-        create_time=datetime.datetime.now()
-    )
+    result = await detect_create_table_and_to_result(user_address, chain, chain_id, option)
 
-    status, result = await get_detect_result(chain_id, user_address, option)
-    if status:
-        user_detection.status = "1"
-        await user_detection.save()
-        return await success(result)
-    else:
-        user_detection.status = "2"
-        await user_detection.save()
-        return await success({})
+    return await success(result)
+
+
+@wallet_detect_router.post('/merge_detect')
+async def merge_detection(
+        user_address: str = Body(None),
+        chain: Optional[str] = Body("BSC"),
+):
+    """
+    home search
+    :param user_address:用户钱包地址
+    :param chain: 链(ETH,BSC)
+    :return:
+    """
+    if not user_address:
+        return await error_found("no user address")
+    chain_id = chain_type.get(chain)
+    if not chain_id or chain_id is None:
+        return await error_found("This chain is not supported yet/ chain error")
+
+    erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2)
+    nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3)
+
+    data = {
+        "erc20": erc20,
+        "nft721": nft721
+    }
+    return await success(data)
