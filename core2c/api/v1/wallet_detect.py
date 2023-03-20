@@ -142,7 +142,7 @@ async def nft721_process_data(content):
                 "nft_name": nft_name,
                 "nft_address": nft_address,
                 "nft_symbol": nft_symbol,
-                "approved_amount": approved_amount,
+                "approved_amount": "approval all" if approved_amount == 1 else "single",
                 "advice": 0 if risk < 1 else 1,
                 "risk": risk,
                 "malicious_behavior": malicious_behavior
