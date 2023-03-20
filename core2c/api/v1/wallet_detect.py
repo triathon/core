@@ -194,7 +194,7 @@ async def total():
     """
     detection total
     """
-    count = await models.UserDetection.filter(type__in=[2, 3]).all().count()
+    count = await models.UserDetection.filter(type=2).all().count()
     return await success({"total": 3000 + int(count)})
 
 
