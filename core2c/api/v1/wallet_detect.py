@@ -124,7 +124,7 @@ async def nft721_process_data(content):
         nft_symbol = v.get("nft_symbol")
         for item in v.get("approved_list"):
             contract = item.get("approved_contract")
-            approved_amount = item.get("approved_amount")
+            approved_amount = item.get("approved_for_all")
             address_info = item.get("address_info")
 
             malicious_behavior = address_info.get("malicious_behavior")
