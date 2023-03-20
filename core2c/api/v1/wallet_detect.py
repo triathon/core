@@ -61,7 +61,7 @@ async def token_process_data(content):
     token_res = []
     for v in content_result:
         chain_id = v.get("chain_id", 56)
-        token_name = v.get("token_name")
+        token_name = ''.join(v.get("token_name").split('\b'))
         token_address = v.get("token_address")
         token_symbol = v.get("token_symbol")
         balance = v.get("balance")
@@ -124,7 +124,7 @@ async def nft721_process_data(content):
         nft_symbol = v.get("nft_symbol")
         for item in v.get("approved_list"):
             contract = item.get("approved_contract")
-            approved_amount = item.get("approved_amount")
+            approved_amount = item.get("approved_for_all")
             address_info = item.get("address_info")
 
             malicious_behavior = address_info.get("malicious_behavior")
