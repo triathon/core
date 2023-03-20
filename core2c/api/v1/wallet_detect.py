@@ -61,7 +61,7 @@ async def token_process_data(content):
     token_res = []
     for v in content_result:
         chain_id = v.get("chain_id", 56)
-        token_name = v.get("token_name")
+        token_name = ''.join(v.get("token_name").split('\b'))
         token_address = v.get("token_address")
         token_symbol = v.get("token_symbol")
         balance = v.get("balance")
