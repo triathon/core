@@ -46,6 +46,8 @@ async def goplus_wallet_detect(chain, addresses, option=2):
         logger.exception('extract_goplus_info error')
         return None
 
+# Approval security risk data process
+
 
 async def token_process_data(content):
     """
@@ -59,13 +61,20 @@ async def token_process_data(content):
 
     count_risk = 0
     token_res = []
+    asset_count_risk = 0
+    token_asset_res = []
     for v in content_result:
+        # approval
         chain_id = v.get("chain_id", 56)
         token_name = ''.join(v.get("token_name").split('\b'))
         token_address = v.get("token_address")
         token_symbol = v.get("token_symbol")
         balance = v.get("balance")
+        # asset
+        malicious_address = v.get("malicious_address")
+        is_open_source = v.get("is_open_source")
         for item in v.get("approved_list"):
+            # approval
             contract = item.get("approved_contract")
             approved_amount = item.get("approved_amount")
             address_info = item.get("address_info")
@@ -93,9 +102,35 @@ async def token_process_data(content):
             }
             token_res.append(res_dict)
 
+            # asset
+            deployed_time = address_info.get("deployed_time")
+            safety_tips = []
+            if is_open_source == 0:
+                asset_count_risk += 1
+                safety_tips.append("This contract is not open source.")
+            elif malicious_address == 1:
+                safety_tips = malicious_behavior
+            asset_count_risk += risk
+            asset_res_dict = {
+                "asset_name": token_name,
+                "symbol": token_name,
+                "safety_tips": safety_tips,
+                "chain_id": chain_id,
+                "type": "ERC-20",
+                "contract_address": token_address,
+                "balance": balance,
+                "advice": "Safe" if asset_count_risk < 1 else "Caution" if asset_count_risk == 1 else "Do not trade",
+                "deployed_time": deployed_time
+            }
+            token_asset_res.append(asset_res_dict)
+
     result = {
+        # approval
         "count_risk": count_risk,
-        "result": token_res
+        "result": token_res,
+        # asset
+        "asset_count_risk": asset_count_risk,
+        "asset_result": token_asset_res
     }
     return True, result
 
@@ -117,12 +152,19 @@ async def nft721_process_data(content):
 
     count_risk = 0
     token_res = []
+    asset_count_risk = 0
+    asset_res = []
     for v in content_result:
+        # approval
         chain_id = v.get("chain_id", 56)
         nft_name = v.get("nft_name")
         nft_address = v.get("nft_address")
         nft_symbol = v.get("nft_symbol")
+        # asset
+        malicious_address = v.get("malicious_address")
+        is_open_source = v.get("is_open_source")
         for item in v.get("approved_list"):
+            # approval
             contract = item.get("approved_contract")
             approved_amount = item.get("approved_for_all")
             address_info = item.get("address_info")
@@ -149,9 +191,35 @@ async def nft721_process_data(content):
             }
             token_res.append(res_dict)
 
+            # asset
+            deployed_time = address_info.get("deployed_time")
+            asset_risk = 0
+            safety_tips = []
+            if is_open_source == 0:
+                asset_risk += 1
+                safety_tips.append("This contract is not open source.")
+            elif malicious_address == 1:
+                safety_tips = malicious_behavior
+            asset_risk += risk
+            asset_count_risk += asset_risk
+            asset_res_dict = {
+                "asset_name": nft_symbol,
+                "symbol": nft_symbol,
+                "safety_tips": safety_tips,
+                "chain_id": chain_id,
+                "type": "ERC-721",
+                "contract_address": nft_address,
+                "balance": "1",
+                "advice": "Safe" if asset_risk < 1 else "Caution" if asset_risk == 1 else "Do not trade",
+                "deployed_time": deployed_time
+            }
+            asset_res.append(asset_res_dict)
+
     result = {
         "count_risk": count_risk,
-        "result": token_res
+        "result": token_res,
+        "asset_count_risk": asset_count_risk,
+        "asset_result": asset_res
     }
     return True, result
 
@@ -170,6 +238,9 @@ async def get_detect_result(chain_id, user_address, option):
 
 
 async def detect_create_table_and_to_result(user_address, chain, chain_id, option=2):
+    """
+    detect save db
+    """
     user_detection, _ = await models.UserDetection.get_or_create(
         address=user_address,
         user_address=user_address,
@@ -185,6 +256,28 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
         user_detection.status = "2"
     await user_detection.save()
     return result
+
+
+async def merge_erc20_nft721_detect(user_address, chain, chain_id):
+    erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2)
+    nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3)
+
+    asset_erc20 = erc20.pop("asset_count_risk")
+    asset_erc20_result = erc20.pop("asset_result")
+    asset_nft721 = nft721.pop("asset_count_risk")
+    asset_nft721_result = nft721.pop("asset_result")
+
+    asset_result = asset_erc20_result + asset_nft721_result
+    sort_result = sorted(asset_result, key=lambda x: x.get("deployed_time"), reverse=True)
+    data = {
+        "erc20": erc20,
+        "nft721": nft721,
+        "asset_security": {
+            "count_risk": asset_erc20 + asset_nft721,
+            "result": sort_result
+        }
+    }
+    return data
 
 # -- api
 
@@ -241,11 +334,5 @@ async def merge_detection(
     if not chain_id or chain_id is None:
         return await error_found("This chain is not supported yet/ chain error")
 
-    erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2)
-    nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3)
-
-    data = {
-        "erc20": erc20,
-        "nft721": nft721
-    }
+    data = await merge_erc20_nft721_detect(user_address, chain, chain_id)
     return await success(data)
