@@ -7,6 +7,8 @@
 
   "goplus_api": {
     "token_approval_security": "https://api.gopluslabs.io/api/v2/token_approval_security/{chain}?addresses={addresses}",
-    "nft721_approval_security": "http://api.gopluslabs.io/api/v2/nft721_approval_security/{chain}?addresses={addresses}"
+    "nft721_approval_security": "http://api.gopluslabs.io/api/v2/nft721_approval_security/{chain}?addresses={addresses}",
+    "token_security": "https://api.gopluslabs.io/api/v1/token_security/{chain}?contract_addresses={token_address}",
+    "nft_security": "https://api.gopluslabs.io/api/v1/nft_security/{chain}?contract_addresses={addresses}"
   }
 }

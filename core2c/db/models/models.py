@@ -15,7 +15,7 @@ class UserDetection(Model):
     address = fields.CharField(max_length=255, description="检测地址")
     user_address = fields.CharField(max_length=255, description="用户钱包地址")
     chain = fields.CharField(max_length=30, description="链类型")
-    type = fields.IntField(description="1 token检测 2token授权检测 3erc721授权检测")
+    type = fields.IntField(description="1 token检测 2token授权检测 3erc721授权检测 4nft检测")
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     status = fields.CharField(max_length=10, default="0", description="0检测中1检测成功2检测失败")
 
@@ -47,3 +47,28 @@ class TokenDetection(Model):
     class Meta:
         table = "token_detection"
         table_description = "token检测"
+
+
+class NftDetection(Model):
+    id = fields.IntField(pk=True)
+    user_detection = fields.ForeignKeyField("models.UserDetection", on_delete=fields.CASCADE)
+    logo = fields.CharField(max_length=255, null=True)
+    name = fields.CharField(max_length=255, null=True)
+
+    # Basic info
+    nft_erc = fields.CharField(max_length=255, null=True)
+    owner_addr = fields.CharField(max_length=255, null=True)
+
+    # data change with time
+    # Trading and Holding
+    trading_holding = fields.JSONField(null=True)
+    # Security (0 not risk,1 risk)
+    authenticity = fields.JSONField(null=True)
+    trading_security = fields.JSONField(null=True)
+
+    risks = fields.JSONField(null=True)
+    error = fields.TextField(null=True)
+
+    class Meta:
+        table = "nft_detection"
+        table_description = "nft检测结果"
