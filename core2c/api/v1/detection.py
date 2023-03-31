@@ -15,7 +15,7 @@ from fastapi import APIRouter, Body
 from typing import Optional
 
 from db.models import models
-from conf import logger
+from conf import logger, config
 from consts import success, error_found
 
 detection_router = APIRouter(prefix='')
@@ -29,7 +29,7 @@ chain_type = {
     "Optimism": "10",
 }
 
-goplus_api = "https://api.gopluslabs.io/api/v1/token_security/{chain}?contract_addresses={token_address}"
+nft_security = config['goplus_api'].get("nft_security")
 
 # token detection key
 contract_security_key = (
@@ -47,15 +47,16 @@ trading_security_key = (
 trading_high_stake = ("is_honeypot", "transfer_pausable", "cannot_sell_all", "slippage_modifiable", "personal_slippage_modifiable")
 trading_medium_risk = ("cannot_buy", "trading_cooldown", "is_anti_whale", "anti_whale_modifiable", "is_blacklisted", "is_whitelisted")
 
+# nft detection key
 
-async def goplus_token_detection(chain, token_address):
+
+async def goplus_detection(url):
     """
     goplus toen detection
-    :param chain: chain id
-    :param token_address: token adderss
+    :param url: url
     """
     try:
-        url = goplus_api.format(chain=chain, token_address=token_address)
+        print(url)
         content = requests.get(url).json()
         return content
     except Exception:
@@ -139,7 +140,6 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         token.contract_security = json.dumps(contract_security)
         token.trading_security = json.dumps(trading_security)
 
-        token.status = True
         await token.save()
         return True, token, "ok"
     except Exception as e:
@@ -218,6 +218,154 @@ async def token_detection_details(query):
     }
     return result
 
+
+async def check_risk_value(key, num, correct_value=0):
+    """
+    check risk update value/risk num
+    """
+    if key == correct_value:
+        value = 0
+    else:
+        num += 1
+        value = 1
+    return value, num
+
+
+async def save_nft_detection_result(content, user_detection_id):
+    """
+    save nft detection result
+    :param content: detection result
+    :param user_detection_id: token address
+    """
+    error_msg = "Something wrong, please check（There may be the following reasons: wrong chain," \
+                " wrong address, the contract is not open source）"
+    detect, _ = await models.NftDetection.get_or_create(user_detection_id=user_detection_id)
+    try:
+        result = content.get("result")
+        if not result:
+            return False, _, error_msg
+        is_open_source = result.get("is_open_source")
+        if not result or is_open_source == "0":
+            detect.error = error_msg
+            await detect.save()
+            return False, _, error_msg
+
+        trading_holding = {
+            "nft_items": result.get("nft_items"),
+            "nft_owner_number": result.get("nft_owner_number"),
+            "average_price_24h": result.get("average_price_24h"),
+            "lowest_price_24h": result.get("lowest_price_24h"),
+            "sales_24h": result.get("sales_24h"),
+            "traded_volume_24h": result.get("traded_volume_24h"),
+            "total_volume": result.get("total_volume"),
+            "highest_price": result.get("highest_price")
+        }
+
+        # risk
+        medium_risk, high_risk = 0, 0
+
+        nft_verified = result.get("nft_verified")
+        same_nfts = result.get("same_nfts")
+
+        nft_verified, medium_risk = await check_risk_value(nft_verified, medium_risk, 1)
+        same_nfts, high_risk = await check_risk_value(same_nfts, high_risk, "null")
+        authenticity = {
+            "nft_verified": nft_verified,
+            "same_nfts": same_nfts
+        }
+
+        nft_open_source = result.get("nft_open_source")
+        nft_proxy = result.get("nft_proxy")
+        malicious_nft_contract = result.get("malicious_nft_contract")
+        privileged_burn = result.get("privileged_burn")
+        transfer_without_approval = result.get("transfer_without_approval")
+        privileged_minting = result.get("privileged_minting")
+        self_destruct = result.get("self_destruct")
+        restricted_approval = result.get("restricted_approval")
+
+        nft_open_source, high_risk = await check_risk_value(nft_open_source, high_risk, 1)
+        nft_proxy, medium_risk = await check_risk_value(nft_proxy, medium_risk)
+        malicious_nft_contract, high_risk = await check_risk_value(malicious_nft_contract, high_risk)
+
+        privileged_burn, high_risk = await check_risk_value(privileged_burn.get('value'), high_risk)
+        transfer_without_approval, high_risk = await check_risk_value(transfer_without_approval.get('value'), high_risk)
+        privileged_minting, medium_risk = await check_risk_value(privileged_minting.get('value'), medium_risk)
+        self_destruct, high_risk = await check_risk_value(self_destruct.get('value'), high_risk)
+
+        restricted_approval, high_risk = await check_risk_value(restricted_approval, high_risk)
+
+        trading_security = {
+            "nft_open_source": nft_open_source,
+            "nft_proxy": nft_proxy,
+            "malicious_nft_contract": malicious_nft_contract,
+            "privileged_burn": privileged_burn,
+            "transfer_without_approval": transfer_without_approval,
+            "privileged_minting": privileged_minting,
+            "self_destruct": self_destruct,
+            "restricted_approval": restricted_approval
+        }
+
+        risk_result = "low risk"
+        if high_risk == 0 and medium_risk > 0:
+            risk_result = "medium risk"
+        elif high_risk > 0:
+            risk_result = "high risk"
+        risks = {
+            "high_risk": high_risk,
+            "medium_risk": medium_risk,
+            "risk_result": risk_result
+        }
+        # -- update data
+        detect.logo = result.get("nft_symbol")
+        detect.name = result.get("nft_name")
+
+        detect.nft_erc = result.get("nft_erc")
+        detect.owner_addr = result.get("owner_address")
+
+        detect.trading_holding = json.dumps(trading_holding)
+        detect.authenticity = json.dumps(authenticity)
+        detect.trading_security = json.dumps(trading_security)
+        detect.risks = json.dumps(risks)
+
+        await detect.save()
+        return True, detect, "ok"
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        logger.error("save_nft_detection_result error: %s" % str(e))
+        return False, _, _
+
+
+async def nft_detection_details(query):
+    """
+    get nft detection details
+    """
+    detect_query = await models.NftDetection.filter(user_detection_id=query.id).first()
+
+    # time utc
+    time_struct = int(time.mktime(query.create_time.timetuple()))
+    utc_time = datetime.datetime.utcfromtimestamp(time_struct-28800).strftime("UTC %d/%m/%Y %H:%M:%S")
+
+    # result
+    result = {
+        "id": detect_query.id,
+        "detection_user": query.user_address,
+        "detection_time": utc_time,
+        "logo": detect_query.logo,
+        "token_name": detect_query.name,
+
+        "detect_chain": query.chain,
+        "detect_address": query.address,
+        "nft_stand": detect_query.nft_erc,
+        "owner_addr": detect_query.owner_addr,
+
+        "trading_holding": detect_query.trading_holding,
+        "authenticity": detect_query.authenticity,
+        "trading_security": detect_query.trading_security,
+
+        "risk": detect_query.risks
+    }
+    return result
 # --- api
 
 
@@ -272,7 +420,8 @@ async def token_detection(
         type=1
     )
 
-    content = await goplus_token_detection(chain_id, token_address)
+    content = await goplus_detection(
+        config['goplus_api'].get("token_security").format(chain=chain, token_address=token_address))
     if not content:
         return await error_found("detection failure")
     status, _, msg = await save_token_detection_result(content, token_address, user_detection.id)
@@ -301,4 +450,68 @@ async def get_token_detection(
     elif query.status == "2":
         return await error_found(token_query.error)
     result = await token_detection_details(query)
+    return await success(result)
+
+
+@detection_router.post('/nft_detection')
+async def nft_detection(
+        user_address: str = Body(None),
+        detect_address: str = Body(None),
+        chain: Optional[str] = Body("BSC"),
+):
+    """
+    home search
+    :param user_address:用户钱包地址
+    :param detect_address:检测地址
+    :param chain:
+    :return:
+    """
+    if not user_address:
+        return await error_found("no user address")
+    if not detect_address:
+        return await error_found("no detect address")
+    if chain not in ["ETH", "BSC", "Polygon"]:
+        return await error_found("This chain is not supported yet/ chain error")
+
+    chain_id = chain_type.get(chain)
+    if not chain_id or chain_id is None:
+        return await error_found("This chain is not supported yet/ chain error")
+
+    user_detection, _ = await models.UserDetection.get_or_create(
+        address=detect_address,
+        user_address=user_address,
+        chain=chain,
+        type=4
+    )
+
+    content = await goplus_detection(
+        config['goplus_api'].get("nft_security").format(chain=chain_id, addresses=detect_address))
+    if not content:
+        return await error_found("detection failure")
+    status, _, msg = await save_nft_detection_result(content, user_detection.id)
+    user_detection.create_time = datetime.datetime.now()
+    if status:
+        user_detection.status = "1"
+        await user_detection.save()
+        result = await nft_detection_details(user_detection)
+        return await success(result)
+    else:
+        user_detection.status = "2"
+        await user_detection.save()
+        return await error_found(msg)
+
+
+@detection_router.get("/nft_detection/{pk}")
+async def get_nft_detection(
+        pk: str
+):
+    token_query = await models.NftDetection.filter(id=pk).order_by("-id").first()
+    if not token_query:
+        return await error_found("not nft address")
+    query = await models.UserDetection.filter(id=token_query.user_detection_id, type=4).order_by("-id").first()
+    if query.status == "0":
+        return await error_found("be testing")
+    elif query.status == "2":
+        return await error_found(token_query.error)
+    result = await nft_detection_details(query)
     return await success(result)
