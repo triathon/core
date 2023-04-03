@@ -10,6 +10,7 @@ from django.utils.deprecation import MiddlewareMixin
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
+from conf import logger
 
 
 class RequestMiddleware(MiddlewareMixin):
@@ -98,9 +99,9 @@ class RequestMiddleware(MiddlewareMixin):
             resp["msg"] = "Login Failed"
         else:
             resp["code"] = status.HTTP_500_INTERNAL_SERVER_ERROR
-            resp["msg"] = f"The service is busy, please try again:{str(exception)}"
+            resp["msg"] = f"The service is busy, please try again."
         resp["data"] = None
-        # logger.error(f"错误信息:{str(exception)}")
+        logger.error(f"错误信息:{str(exception)}")
         response = JsonResponse(data=resp, status=status.HTTP_200_OK)
         import traceback
         traceback.print_exc()
