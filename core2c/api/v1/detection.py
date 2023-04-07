@@ -375,18 +375,24 @@ async def total():
     detection total
     """
     count = await models.TokenDetection.all().count()
-    return await success({"total": 3000 + int(count)})
+    nft_count = await models.NftDetection.all().count()
+    return await success({"total": 3000 + int(count), "nft_total": 3000 + int(nft_count)})
 
 
 @detection_router.get("/detection_status")
 async def status(
-        user_address: str
+        user_address: str,
+        option: Optional[int] = 1
 ):
     """
     get detection status
     """
     data = {"status": "0"}
-    user_detection = await models.UserDetection.filter(user_address=user_address, status="0", type=1).first()
+    if option == 1:
+        ud_type = 1
+    else:
+        ud_type = 4
+    user_detection = await models.UserDetection.filter(user_address=user_address, status="0", type=ud_type).first()
     if user_detection:
         data = {"status": "1", "address": user_detection.address, "chain": user_detection.chain}
     return await success(data)
