@@ -56,7 +56,6 @@ async def goplus_detection(url):
     :param url: url
     """
     try:
-        print(url)
         content = requests.get(url).json()
         return content
     except Exception:
@@ -427,7 +426,7 @@ async def token_detection(
     )
 
     content = await goplus_detection(
-        config['goplus_api'].get("token_security").format(chain=chain, token_address=token_address))
+        config['goplus_api'].get("token_security").format(chain=chain_id, token_address=token_address))
     if not content:
         return await error_found("detection failure")
     status, _, msg = await save_token_detection_result(content, token_address, user_detection.id)
