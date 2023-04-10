@@ -262,10 +262,20 @@ async def merge_erc20_nft721_detect(user_address, chain, chain_id):
     erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2)
     nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3)
 
-    asset_erc20 = erc20.pop("asset_count_risk")
-    asset_erc20_result = erc20.pop("asset_result")
-    asset_nft721 = nft721.pop("asset_count_risk")
-    asset_nft721_result = nft721.pop("asset_result")
+    if erc20 != "not result":
+        asset_erc20 = erc20.pop("asset_count_risk")
+        asset_erc20_result = erc20.pop("asset_result")
+    else:
+        erc20 = {"count_risk": 0, "result": []}
+        asset_erc20 = 0
+        asset_erc20_result = []
+    if nft721 != "not result":
+        asset_nft721 = nft721.pop("asset_count_risk")
+        asset_nft721_result = nft721.pop("asset_result")
+    else:
+        nft721 = {"count_risk": 0, "result": []}
+        asset_nft721 = 0
+        asset_nft721_result = []
 
     asset_result = asset_erc20_result + asset_nft721_result
     sort_result = sorted(asset_result, key=lambda x: x.get("deployed_time"), reverse=True)
