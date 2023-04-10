@@ -104,22 +104,17 @@ async def token_process_data(content):
 
             # asset
             deployed_time = address_info.get("deployed_time")
-            safety_tips = []
-            if is_open_source == 0:
-                asset_count_risk += 1
-                safety_tips.append("This contract is not open source.")
-            elif malicious_address == 1:
-                safety_tips = malicious_behavior
+
             asset_count_risk += risk
             asset_res_dict = {
                 "asset_name": token_name,
                 "symbol": token_name,
-                "safety_tips": safety_tips,
+                "safety_tips": malicious_behavior,
                 "chain_id": chain_id,
                 "type": "ERC-20",
                 "contract_address": token_address,
                 "balance": balance,
-                "advice": "Safe" if asset_count_risk < 1 else "Caution" if asset_count_risk == 1 else "Do not trade",
+                "advice": "Safe" if risk < 1 else "Caution" if risk == 1 else "Do not trade",
                 "deployed_time": deployed_time
             }
             token_asset_res.append(asset_res_dict)
@@ -193,24 +188,17 @@ async def nft721_process_data(content):
 
             # asset
             deployed_time = address_info.get("deployed_time")
-            asset_risk = 0
-            safety_tips = []
-            if is_open_source == 0:
-                asset_risk += 1
-                safety_tips.append("This contract is not open source.")
-            elif malicious_address == 1:
-                safety_tips = malicious_behavior
-            asset_risk += risk
-            asset_count_risk += asset_risk
+
+            asset_count_risk += risk
             asset_res_dict = {
                 "asset_name": nft_symbol,
                 "symbol": nft_symbol,
-                "safety_tips": safety_tips,
+                "safety_tips": malicious_behavior,
                 "chain_id": chain_id,
                 "type": "ERC-721",
                 "contract_address": nft_address,
                 "balance": "1",
-                "advice": "Safe" if asset_risk < 1 else "Caution" if asset_risk == 1 else "Do not trade",
+                "advice": "Safe" if risk < 1 else "Caution" if risk == 1 else "Do not trade",
                 "deployed_time": deployed_time
             }
             asset_res.append(asset_res_dict)
