@@ -479,7 +479,7 @@ async def nft_detection(
         return await error_found("no user address")
     if not detect_address:
         return await error_found("no detect address")
-    if chain not in ["ETH", "BSC", "Polygon"]:
+    if chain not in ["ETH", "BSC", "Polygon", "Avalanche"]:
         return await error_found("This chain is not supported yet/ chain error")
 
     chain_id = chain_type.get(chain)
