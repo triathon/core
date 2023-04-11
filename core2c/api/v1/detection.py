@@ -277,19 +277,23 @@ async def save_nft_detection_result(content, user_detection_id):
         nft_proxy = result.get("nft_proxy")
         malicious_nft_contract = result.get("malicious_nft_contract")
         privileged_burn = result.get("privileged_burn")
-        transfer_without_approval = result.get("transfer_without_approval")
-        privileged_minting = result.get("privileged_minting")
-        self_destruct = result.get("self_destruct")
+        transfer_without_approval = result.get("transfer_without_approval", {})
+        privileged_minting = result.get("privileged_minting", {})
+        self_destruct = result.get("self_destruct", {})
         restricted_approval = result.get("restricted_approval")
 
         nft_open_source, high_risk = await check_risk_value(nft_open_source, high_risk, 1)
         nft_proxy, medium_risk = await check_risk_value(nft_proxy, medium_risk)
         malicious_nft_contract, high_risk = await check_risk_value(malicious_nft_contract, high_risk)
 
-        privileged_burn, high_risk = await check_risk_value(privileged_burn.get('value'), high_risk)
-        transfer_without_approval, high_risk = await check_risk_value(transfer_without_approval.get('value'), high_risk)
-        privileged_minting, medium_risk = await check_risk_value(privileged_minting.get('value'), medium_risk)
-        self_destruct, high_risk = await check_risk_value(self_destruct.get('value'), high_risk)
+        privileged_burn, high_risk = await check_risk_value(
+            privileged_burn.get('value') if privileged_burn else '', high_risk)
+        transfer_without_approval, high_risk = await check_risk_value(
+            transfer_without_approval.get('value') if transfer_without_approval else '', high_risk)
+        privileged_minting, medium_risk = await check_risk_value(
+            privileged_minting.get('value') if privileged_minting else '', medium_risk)
+        self_destruct, high_risk = await check_risk_value(
+            self_destruct.get('value') if self_destruct else '', high_risk)
 
         restricted_approval, high_risk = await check_risk_value(restricted_approval, high_risk)
 
@@ -318,7 +322,7 @@ async def save_nft_detection_result(content, user_detection_id):
         detect.logo = result.get("nft_symbol")
         detect.name = result.get("nft_name")
 
-        detect.nft_erc = result.get("nft_erc")
+        detect.nft_erc = result.get("nft_erc", '').upper()
         detect.owner_addr = result.get("owner_address")
 
         detect.trading_holding = json.dumps(trading_holding)
