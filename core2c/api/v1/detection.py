@@ -221,7 +221,7 @@ async def token_detection_details(query):
 async def check_risk_value(key, num, correct_value=0):
     """
     check risk update value/risk num
-    0 通过 1未通过
+    0 pass 1 notPass
     """
     if key == correct_value:
         value = 0
@@ -287,6 +287,7 @@ async def save_nft_detection_result(content, user_detection_id):
         nft_proxy, medium_risk = await check_risk_value(nft_proxy, medium_risk)
         malicious_nft_contract, high_risk = await check_risk_value(malicious_nft_contract, high_risk)
 
+        # 2 not detect
         if privileged_burn:
             privileged_burn, high_risk = await check_risk_value(privileged_burn.get('value'), high_risk)
         else:
@@ -390,7 +391,7 @@ async def total():
     """
     count = await models.TokenDetection.all().count()
     nft_count = await models.NftDetection.all().count()
-    return await success({"total": 3000 + int(count), "nft_total": 3000 + int(nft_count)})
+    return await success({"total": 3000 + int(count) + int(nft_count), "nft_total": int(nft_count)})
 
 
 @detection_router.get("/detection_status")
