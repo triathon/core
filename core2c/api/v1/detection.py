@@ -318,7 +318,7 @@ async def save_nft_detection_result(content, user_detection_id):
         detect.logo = result.get("nft_symbol")
         detect.name = result.get("nft_name")
 
-        detect.nft_erc = result.get("nft_erc")
+        detect.nft_erc = result.get("nft_erc", '').upper()
         detect.owner_addr = result.get("owner_address")
 
         detect.trading_holding = json.dumps(trading_holding)
