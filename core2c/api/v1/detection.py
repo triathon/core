@@ -268,7 +268,7 @@ async def save_nft_detection_result(content, user_detection_id):
         same_nfts = result.get("same_nfts")
 
         nft_verified, medium_risk = await check_risk_value(nft_verified, medium_risk, 1)
-        same_nfts, high_risk = await check_risk_value(same_nfts, high_risk, "null")
+        same_nfts, medium_risk = await check_risk_value(same_nfts, medium_risk, "null")
         authenticity = {
             "nft_verified": nft_verified,
             "same_nfts": same_nfts
