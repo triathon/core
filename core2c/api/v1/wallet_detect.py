@@ -71,8 +71,7 @@ async def token_process_data(content):
         token_symbol = v.get("token_symbol")
         balance = v.get("balance")
         # asset
-        malicious_address = v.get("malicious_address")
-        is_open_source = v.get("is_open_source")
+        asset_sole_list = []
         for item in v.get("approved_list"):
             # approval
             contract = item.get("approved_contract")
@@ -103,7 +102,8 @@ async def token_process_data(content):
             token_res.append(res_dict)
 
             # asset
-            if balance != "0":
+            asset_sole_key = f"{token_symbol}:{token_address}"
+            if balance != "0" and asset_sole_key not in asset_sole_list:
                 deployed_time = address_info.get("deployed_time")
 
                 asset_count_risk += risk
@@ -119,6 +119,7 @@ async def token_process_data(content):
                     "deployed_time": deployed_time
                 }
                 token_asset_res.append(asset_res_dict)
+                asset_sole_list.append(asset_sole_key)
 
     result = {
         # approval
