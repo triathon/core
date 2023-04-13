@@ -70,8 +70,6 @@ async def token_process_data(content):
         token_address = v.get("token_address")
         token_symbol = v.get("token_symbol")
         balance = v.get("balance")
-        # asset
-        asset_sole_list = []
         for item in v.get("approved_list"):
             # approval
             contract = item.get("approved_contract")
@@ -101,25 +99,24 @@ async def token_process_data(content):
             }
             token_res.append(res_dict)
 
-            # asset
-            asset_sole_key = f"{token_symbol}:{token_address}"
-            if balance != "0" and asset_sole_key not in asset_sole_list:
-                deployed_time = address_info.get("deployed_time")
-
-                asset_count_risk += risk
-                asset_res_dict = {
-                    "asset_name": token_name,
-                    "symbol": token_name,
-                    "safety_tips": malicious_behavior,
-                    "chain_id": chain_id,
-                    "type": "ERC-20",
-                    "contract_address": token_address,
-                    "balance": balance,
-                    "advice": "Safe" if risk < 1 else "Caution" if risk == 1 else "Do not trade",
-                    "deployed_time": deployed_time
-                }
-                token_asset_res.append(asset_res_dict)
-                asset_sole_list.append(asset_sole_key)
+        # asset
+        if balance != "0":
+            v_malicious_behavior = v.get("malicious_behavior")
+            deployed_time = v.get("approved_list")[0].get("address_info").get("deployed_time")
+            asset_risk = len(v_malicious_behavior)
+            asset_count_risk += asset_risk
+            asset_res_dict = {
+                "asset_name": token_name,
+                "symbol": token_name,
+                "safety_tips": v_malicious_behavior,
+                "chain_id": chain_id,
+                "type": "ERC-20",
+                "contract_address": token_address,
+                "balance": balance,
+                "advice": "Safe" if asset_risk < 1 else "Caution" if asset_risk == 1 else "Do not trade",
+                "deployed_time": deployed_time
+            }
+            token_asset_res.append(asset_res_dict)
 
     result = {
         # approval
@@ -157,8 +154,6 @@ async def nft721_process_data(content):
         nft_name = v.get("nft_name")
         nft_address = v.get("nft_address")
         nft_symbol = v.get("nft_symbol")
-        # asset
-        asset_sole_list = []
         for item in v.get("approved_list"):
             # approval
             contract = item.get("approved_contract")
@@ -187,25 +182,24 @@ async def nft721_process_data(content):
             }
             token_res.append(res_dict)
 
-            # asset
-            asset_sole_key = f"{nft_symbol}:{nft_address}"
-            if asset_sole_key not in asset_sole_list:
-                deployed_time = address_info.get("deployed_time")
+        # asset
+        v_malicious_behavior = v.get("malicious_behavior")
+        deployed_time = v.get("approved_list")[0].get("address_info").get("deployed_time")
+        asset_risk = len(v_malicious_behavior)
 
-                asset_count_risk += risk
-                asset_res_dict = {
-                    "asset_name": nft_symbol,
-                    "symbol": nft_symbol,
-                    "safety_tips": malicious_behavior,
-                    "chain_id": chain_id,
-                    "type": "ERC-721",
-                    "contract_address": nft_address,
-                    "balance": str(len(v.get("approved_list"))),
-                    "advice": "Safe" if risk < 1 else "Caution" if risk == 1 else "Do not trade",
-                    "deployed_time": deployed_time
-                }
-                asset_res.append(asset_res_dict)
-                asset_sole_list.append(asset_sole_key)
+        asset_count_risk += asset_risk
+        asset_res_dict = {
+            "asset_name": nft_symbol,
+            "symbol": nft_symbol,
+            "safety_tips": v_malicious_behavior,
+            "chain_id": chain_id,
+            "type": "ERC-721",
+            "contract_address": nft_address,
+            "balance": str(len(v.get("approved_list"))),
+            "advice": "Safe" if asset_risk < 1 else "Caution" if asset_risk == 1 else "Do not trade",
+            "deployed_time": deployed_time
+        }
+        asset_res.append(asset_res_dict)
 
     result = {
         "count_risk": count_risk,
