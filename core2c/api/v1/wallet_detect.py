@@ -101,9 +101,18 @@ async def token_process_data(content):
 
         # asset
         if balance != "0":
-            v_malicious_behavior = v.get("malicious_behavior")
             deployed_time = v.get("approved_list")[0].get("address_info").get("deployed_time")
-            asset_risk = len(v_malicious_behavior)
+            v_is_open_source = v.get("is_open_source")
+            v_malicious_address = v.get("malicious_address")
+            if v_is_open_source == 0:
+                v_malicious_behavior = ['This contract is not open source.']
+                asset_risk = 1
+            elif v_is_open_source == 1 and v_malicious_address == 1:
+                v_malicious_behavior = v.get("malicious_behavior")
+                asset_risk = len(v_malicious_behavior)
+            else:
+                v_malicious_behavior, asset_risk = [], 0
+
             asset_count_risk += asset_risk
             asset_res_dict = {
                 "asset_name": token_name,
@@ -183,9 +192,17 @@ async def nft721_process_data(content):
             token_res.append(res_dict)
 
         # asset
-        v_malicious_behavior = v.get("malicious_behavior")
         deployed_time = v.get("approved_list")[0].get("address_info").get("deployed_time")
-        asset_risk = len(v_malicious_behavior)
+        v_is_open_source = v.get("is_open_source")
+        v_malicious_address = v.get("malicious_address")
+        if v_is_open_source == 0:
+            v_malicious_behavior = ['This contract is not open source.']
+            asset_risk = 1
+        elif v_is_open_source == 1 and v_malicious_address == 1:
+            v_malicious_behavior = v.get("malicious_behavior")
+            asset_risk = len(v_malicious_behavior)
+        else:
+            v_malicious_behavior, asset_risk = [], 0
 
         asset_count_risk += asset_risk
         asset_res_dict = {
