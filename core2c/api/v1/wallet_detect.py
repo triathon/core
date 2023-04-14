@@ -116,7 +116,7 @@ async def token_process_data(content):
             asset_count_risk += asset_risk
             asset_res_dict = {
                 "asset_name": token_name,
-                "symbol": token_name,
+                "symbol": token_symbol,
                 "safety_tips": v_malicious_behavior,
                 "chain_id": chain_id,
                 "type": "ERC-20",
@@ -206,7 +206,7 @@ async def nft721_process_data(content):
 
         asset_count_risk += asset_risk
         asset_res_dict = {
-            "asset_name": nft_symbol,
+            "asset_name": nft_name,
             "symbol": nft_symbol,
             "safety_tips": v_malicious_behavior,
             "chain_id": chain_id,
