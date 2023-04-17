@@ -11,20 +11,12 @@ from slither.slither import Slither
 from tempfile import NamedTemporaryFile
 from slither.detectors.abstract_detector import AbstractDetector
 from slither.detectors import all_detectors
-from solc_select.solc_select import switch_global_version
+from solc_select.solc_select import switch_global_version, installed_versions, install_artifacts
 from token_audit.contract_helper import find_real_contract, check_black_list
 from token_audit.contract_helper import check_selfdestruct, check_owner_privilege
 
 
 pattern = r"\(.*?\)"
-
-ver_dict = {
-    "0.4": "0.4.26",
-    "0.5": "0.5.16",
-    "0.6": "0.6.11",
-    "0.7": "0.7.6",
-    "0.8": "0.8.16",
-}
 
 
 def version_vif(version):
@@ -42,20 +34,12 @@ def version_vif(version):
         version = version_group.replace(">", "")
     else:
         version = version_group
-    version_two = version[:3]
-    version_three = version.split(".")[-1]
 
-    installed_ver = ver_dict.get(version_two)
-    # 判断版本
-    # installed_version_three = installed_ver.split(".")[-1]
-    # if int(version_three) > int(installed_version_three):
-    #     installed_ver = version
-    #     solcx.install_solc(version)
-    # switch_global_version(installed_ver)
-    if not installed_ver:
-        return False, "The compiler version is incorrect"
-    switch_global_version(installed_ver)
-    return True, ""
+    if version not in installed_versions():
+        install_artifacts("all")
+
+    switch_global_version(version)
+    return True, version
 
 
 def handle(req):
