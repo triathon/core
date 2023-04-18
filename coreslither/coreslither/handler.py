@@ -4,7 +4,6 @@ import inspect
 import time
 
 import redis
-import solcx
 
 from models.module import Document, DATA
 from slither.slither import Slither
@@ -36,7 +35,7 @@ def version_vif(version):
         version = version_group
 
     if version not in installed_versions():
-        install_artifacts("all")
+        install_artifacts(version)
 
     switch_global_version(version)
     return True, version
