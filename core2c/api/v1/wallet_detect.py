@@ -11,6 +11,8 @@ import requests
 from fastapi import APIRouter, Body
 from typing import Optional
 
+from tortoise.functions import Sum
+
 from db.models import models
 from conf import logger, config
 from consts import success, error_found
@@ -255,6 +257,10 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
     status, result = await get_detect_result(chain_id, user_address, option)
     if status:
         user_detection.status = "1"
+        if option == 2:
+            await models.DetectionTotalCount.get_or_create(
+                user_detection=user_detection
+            )
     else:
         user_detection.status = "2"
     await user_detection.save()
@@ -300,8 +306,11 @@ async def total():
     """
     detection total
     """
-    count = await models.UserDetection.filter(type=2).all().count()
-    return await success({"total": 3000 + int(count)})
+    base_total = 10000
+    # count = await models.UserDetection.filter(type=2).all().count()
+    query = await models.DetectionTotalCount.filter(type=1).annotate(sum=Sum("num")).values("sum")
+    count = query[0].get("sum")
+    return await success({"total": base_total + int(count if count else 0)})
 
 
 @wallet_detect_router.post('/detect')

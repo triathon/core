@@ -14,6 +14,8 @@ import requests
 from fastapi import APIRouter, Body
 from typing import Optional
 
+from tortoise.functions import Sum
+
 from db.models import models
 from conf import logger, config
 from consts import success, error_found
@@ -389,9 +391,13 @@ async def total():
     """
     detection total
     """
-    count = await models.TokenDetection.all().count()
-    nft_count = await models.NftDetection.all().count()
-    return await success({"total": 3000 + int(count) + int(nft_count), "nft_total": int(nft_count)})
+    base_total = 7700
+    # token_count = await models.TokenDetection.all().count()
+    # nft_count = await models.NftDetection.all().count()
+
+    query = await models.DetectionTotalCount.filter(type=2).annotate(sum=Sum("num")).values("sum")
+    count = query[0].get("sum")
+    return await success({"total": base_total + int(count if count else 0), "nft_total": 0})
 
 
 @detection_router.get("/detection_status")
@@ -450,6 +456,10 @@ async def token_detection(
     if status:
         user_detection.status = "1"
         await user_detection.save()
+        await models.DetectionTotalCount.get_or_create(
+            user_detection=user_detection,
+            type=2
+        )
         result = await token_detection_details(user_detection)
         return await success(result)
     else:
@@ -514,6 +524,10 @@ async def nft_detection(
     if status:
         user_detection.status = "1"
         await user_detection.save()
+        await models.DetectionTotalCount.get_or_create(
+            user_detection=user_detection,
+            type=2
+        )
         result = await nft_detection_details(user_detection)
         return await success(result)
     else:
