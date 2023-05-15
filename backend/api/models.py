@@ -10,6 +10,10 @@ def make_nonce():
     return random.randint(100000, 1000000)
 
 
+def make_count():
+    return random.randint(1, 5)
+
+
 class User(AbstractUser):
     USERNAME_FIELD = 'wallet_address'
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -64,3 +68,9 @@ class DocumentResult(models.Model):
     level = models.CharField(max_length=30, blank=True, null=True)  # High / Medium / Low
     description = models.TextField(blank=True, null=True)
     details = models.JSONField(blank=True, null=True, default=dict)
+
+
+class DetectionCount(models.Model):
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    num = models.IntegerField(default=make_count)
+

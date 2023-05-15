@@ -10,7 +10,7 @@ from hashlib import sha1
 
 from Crypto.Random import random
 from django.core.files.uploadedfile import SimpleUploadedFile as File
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.http import FileResponse
 from django_redis import get_redis_connection
 from eth_account.messages import encode_defunct
@@ -24,7 +24,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from web3.auto import w3
 
-from api.models import Document, User, DocumentResult
+from api.models import Document, User, DocumentResult, DetectionCount
 from api.serializers import WriteDocumentSerializer, ReadDocumentSerializer, DetectionLogSerializer, \
     DocumentResultSerializer
 from api.tools.contract_helper import fetch_contract_meta, write_contract
@@ -305,8 +305,10 @@ class TotalDetection(APIView):
     """
 
     def get(self, request: Request):
-        count = Document.objects.exclude(contract_address=None).count()
-        return Response({"code": 200, "data": 2000 + count})
+        base_count = 6300
+        # count = Document.objects.exclude(contract_address=None).count()
+        count = DetectionCount.objects.aggregate(count=Sum("num")).get("count")
+        return Response({"code": 200, "data": base_count + (count if count else 0)})
 
 
 class MyPageNumberPagination(PageNumberPagination):
@@ -478,10 +480,13 @@ class DetectionDetails2(APIView):
             # 处理检测数据
 
             for i in core_slither:
+                impact = i.get("impact")
+                if impact in ['Informational', 'Optimization'] or impact not in ["High", "Medium", "Low"]:
+                    impact = "Low"
                 res_data = {
                     "document_id": did,
                     "title": i.get("check"),
-                    "level": i.get("confidence"),
+                    "level": impact,
                     "description": i.get("description"),
                     "details": i
                 }
@@ -520,6 +525,8 @@ class DetectionDetails2(APIView):
             query.score = "%.2f" % score
             query.score_ratio = score_ratio
             query.save()
+
+            DetectionCount.objects.get_or_create(**{"document_id": did})
         else:
             dr_query = DocumentResult.objects.filter(document=query)
 
