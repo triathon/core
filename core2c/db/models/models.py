@@ -5,7 +5,8 @@
 @Time        : 2023/2/13 15:41
 @Description :
 """
-
+import math
+import random
 from tortoise import fields
 from tortoise.models import Model
 
@@ -72,3 +73,24 @@ class NftDetection(Model):
     class Meta:
         table = "nft_detection"
         table_description = "nft检测结果"
+
+
+def discretize(x):
+    discrete_value = math.floor(8 / (1 + math.exp(-x))) + 1
+    return discrete_value
+
+
+def random_num():
+    x = random.randint(1, 5)
+    return x
+
+
+class DetectionTotalCount(Model):
+    id = fields.IntField(pk=True)
+    user_detection = fields.ForeignKeyField("models.UserDetection", on_delete=fields.CASCADE)
+    type = fields.IntField(default=1, description="1 钱包检测 2token/nft检测")
+    num = fields.IntField(default=random_num)
+
+    class Meta:
+        table = "detect_total_count"
+        table_description = "检测总数"
