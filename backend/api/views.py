@@ -478,10 +478,13 @@ class DetectionDetails2(APIView):
             # 处理检测数据
 
             for i in core_slither:
+                impact = i.get("impact")
+                if impact in ['Informational', 'Optimization'] or impact not in ["High", "Medium", "Low"]:
+                    impact = "Low"
                 res_data = {
                     "document_id": did,
                     "title": i.get("check"),
-                    "level": i.get("confidence"),
+                    "level": impact,
                     "description": i.get("description"),
                     "details": i
                 }
