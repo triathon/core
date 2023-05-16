@@ -456,7 +456,7 @@ async def token_detection(
     if status:
         user_detection.status = "1"
         await user_detection.save()
-        await models.DetectionTotalCount.get_or_create(
+        await models.DetectionTotalCount.create(
             user_detection=user_detection,
             type=2
         )
@@ -524,7 +524,7 @@ async def nft_detection(
     if status:
         user_detection.status = "1"
         await user_detection.save()
-        await models.DetectionTotalCount.get_or_create(
+        await models.DetectionTotalCount.create(
             user_detection=user_detection,
             type=2
         )
