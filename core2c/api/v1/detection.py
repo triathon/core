@@ -19,7 +19,7 @@ from tortoise.functions import Sum
 from db.models import models
 from conf import logger, config
 from consts import success, error_found
-from consts.redis_conn import get_redis
+from consts.pub_redis import send_pub_redis
 
 detection_router = APIRouter(prefix='')
 
@@ -385,17 +385,6 @@ async def nft_detection_details(query):
     }
     return result
 
-
-async def send_pub_redis(detect_id, medium_risk, high_risk, address):
-    res = {
-        "detect_id": detect_id,
-        "medium_risk": medium_risk,
-        "high_risk": high_risk,
-        "address": address,
-        "detect_type": 1,
-    }
-    rds = get_redis()
-    rds.publish(f"token_nft:{address}", json.dumps(res))
 
 # --- api
 
