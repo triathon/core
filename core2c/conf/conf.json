@@ -5,6 +5,13 @@
   "db_user": "postgres",
   "db_password": "123456",
 
+  "test_mining": {
+    "redis_host": "101.251.205.214",
+    "redis_port": 26379,
+    "redis_password":"octa8lab",
+    "redis_db":5
+  },
+
   "goplus_api": {
     "token_approval_security": "https://api.gopluslabs.io/api/v2/token_approval_security/{chain}?addresses={addresses}",
     "nft721_approval_security": "http://api.gopluslabs.io/api/v2/nft721_approval_security/{chain}?addresses={addresses}",
