@@ -19,6 +19,7 @@ from tortoise.functions import Sum
 from db.models import models
 from conf import logger, config
 from consts import success, error_found
+from consts.pub_redis import send_pub_redis
 
 detection_router = APIRouter(prefix='')
 
@@ -383,6 +384,8 @@ async def nft_detection_details(query):
         "risk": detect_query.risks
     }
     return result
+
+
 # --- api
 
 
@@ -461,6 +464,9 @@ async def token_detection(
             type=2
         )
         result = await token_detection_details(user_detection)
+        await send_pub_redis(
+            user_detection.id, result.get("medium_risk"), result.get("high_risk"), user_detection.user_address
+        )
         return await success(result)
     else:
         user_detection.status = "2"
@@ -529,6 +535,12 @@ async def nft_detection(
             type=2
         )
         result = await nft_detection_details(user_detection)
+        await send_pub_redis(
+            user_detection.id,
+            result['risk'].get("medium_risk"),
+            result['risk'].get("high_risk"),
+            user_detection.user_address
+        )
         return await success(result)
     else:
         user_detection.status = "2"

@@ -35,6 +35,7 @@ from api.tools.verify_submit_status import checkstatus
 from api.tools.detection_result import parseErrorResult
 from api.tools.deltaT import cal_time
 from api.tools.detect_item import parse_excel
+from api.tools.send_redis import send_pub_redis
 
 rd = get_redis_connection()
 
@@ -527,6 +528,8 @@ class DetectionDetails2(APIView):
             query.save()
 
             DetectionCount.objects.get_or_create(**{"document_id": did})
+            # send_pub_redis
+            send_pub_redis(query.id, medium_count, high_count, query.user.wallet_address)
         else:
             dr_query = DocumentResult.objects.filter(document=query)
 
