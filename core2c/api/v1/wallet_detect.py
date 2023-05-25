@@ -16,6 +16,7 @@ from tortoise.functions import Sum
 from db.models import models
 from conf import logger, config
 from consts import success, error_found
+from consts.pub_redis import send_pub_redis
 
 wallet_detect_router = APIRouter(prefix='/wallet_detect')
 
@@ -260,6 +261,10 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
         if option == 2:
             await models.DetectionTotalCount.get_or_create(
                 user_detection=user_detection
+            )
+            # test-mining publish
+            await send_pub_redis(
+                user_detection.id, 0, 0, user_detection.user_address, 5
             )
     else:
         user_detection.status = "2"

@@ -9,13 +9,16 @@ import json
 from consts.redis_conn import get_redis
 
 
-async def send_pub_redis(detect_id, medium_risk, high_risk, address):
+async def send_pub_redis(detect_id, medium_risk, high_risk, address, detect_type=1):
     res = {
         "detect_id": detect_id,
         "medium_risk": medium_risk,
         "high_risk": high_risk,
-        "address": address,
-        "detect_type": 1,
+        "address": address
     }
     rds = get_redis()
-    rds.publish(f"token_nft:{address}", json.dumps(res))
+    if detect_type == 1:
+        rds.publish(f"token_nft:{address}", json.dumps(res))
+    else:
+        rds.publish(f"wallet_detect:{address}", json.dumps(res))
+
