@@ -14,7 +14,8 @@ async def send_pub_redis(detect_id, medium_risk, high_risk, address, detect_type
         "detect_id": detect_id,
         "medium_risk": medium_risk,
         "high_risk": high_risk,
-        "address": address
+        "address": address,
+        "detect_type": detect_type,
     }
     rds = get_redis()
     if detect_type == 1:
