@@ -16,7 +16,7 @@ def send_pub_redis(detect_id, medium_risk, high_risk, address):
         "medium_risk": medium_risk,
         "high_risk": high_risk,
         "address": address,
-        "detect_type": 1,
+        "detect_type": 3,
     }
     rds = get_redis()
     rds.publish(f"static:{address}", json.dumps(res))
