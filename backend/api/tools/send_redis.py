@@ -19,5 +19,5 @@ def send_pub_redis(detect_id, medium_risk, high_risk, address):
         "detect_type": 3,
     }
     rds = get_redis()
-    rds.publish(f"static:{address}", json.dumps(res))
-    print(f"publish: {address}")
+    rds.publish("test_mining", json.dumps(res))
+    print(f"publish 3: {address}")
