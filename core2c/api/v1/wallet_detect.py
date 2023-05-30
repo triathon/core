@@ -243,7 +243,7 @@ async def get_detect_result(chain_id, user_address, option):
     return status, result
 
 
-async def detect_create_table_and_to_result(user_address, chain, chain_id, option=2):
+async def detect_create_table_and_to_result(user_address, chain, chain_id, option=2, isFirst=False):
     """
     detect save db
     :param option: 2token授权检测 3erc721授权检测
@@ -261,7 +261,8 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
         user_detection.status = "1"
     else:
         user_detection.status = "2"
-    if option == 2:
+    if option == 2 and isFirst is True:
+        print('isFirst', isFirst)
         await models.DetectionTotalCount.get_or_create(
             user_detection=user_detection
         )
@@ -273,8 +274,8 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
     return result
 
 
-async def merge_erc20_nft721_detect(user_address, chain, chain_id):
-    erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2)
+async def merge_erc20_nft721_detect(user_address, chain, chain_id, isFirst=False):
+    erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2, isFirst=isFirst)
     nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3)
 
     if erc20 != "not result":
@@ -349,11 +350,13 @@ async def token_detection(
 async def merge_detection(
         user_address: str = Body(None),
         chain: Optional[str] = Body("BSC"),
+        isFirst: Optional[bool] = Body(False),
 ):
     """
     home search
     :param user_address:用户钱包地址
     :param chain: 链(ETH,BSC)
+    :param isFirst: 是否主动触发
     :return:
     """
     if not user_address:
@@ -361,6 +364,5 @@ async def merge_detection(
     chain_id = chain_type.get(chain)
     if not chain_id or chain_id is None:
         return await error_found("This chain is not supported yet/ chain error")
-
-    data = await merge_erc20_nft721_detect(user_address, chain, chain_id)
+    data = await merge_erc20_nft721_detect(user_address, chain, chain_id, isFirst)
     return await success(data)
