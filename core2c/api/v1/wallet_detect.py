@@ -246,6 +246,7 @@ async def get_detect_result(chain_id, user_address, option):
 async def detect_create_table_and_to_result(user_address, chain, chain_id, option=2):
     """
     detect save db
+    :param option: 2token授权检测 3erc721授权检测
     """
     user_detection, _ = await models.UserDetection.get_or_create(
         address=user_address,

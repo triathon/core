@@ -18,6 +18,7 @@ class UserDetection(Model):
     chain = fields.CharField(max_length=30, description="链类型")
     type = fields.IntField(description="1 token检测 2token授权检测 3erc721授权检测 4nft检测")
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
+    update_time = fields.DatetimeField(auto_now=True, null=True, description="修改时间")
     status = fields.CharField(max_length=10, default="0", description="0检测中1检测成功2检测失败")
 
     class Meta:
