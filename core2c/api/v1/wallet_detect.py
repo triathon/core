@@ -259,16 +259,16 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
     status, result = await get_detect_result(chain_id, user_address, option)
     if status:
         user_detection.status = "1"
-        if option == 2:
-            await models.DetectionTotalCount.get_or_create(
-                user_detection=user_detection
-            )
-            # test-mining publish
-            await send_pub_redis(
-                user_detection.id, 0, 0, user_detection.user_address, 5
-            )
     else:
         user_detection.status = "2"
+    if option == 2:
+        await models.DetectionTotalCount.get_or_create(
+            user_detection=user_detection
+        )
+        # test-mining publish
+        await send_pub_redis(
+            user_detection.id, 0, 0, user_detection.user_address, 5
+        )
     await user_detection.save()
     return result
 
