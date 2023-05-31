@@ -248,13 +248,22 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
     detect save db
     :param option: 2token授权检测 3erc721授权检测
     """
-    user_detection, _ = await models.UserDetection.get_or_create(
-        address=user_address,
-        user_address=user_address,
-        chain=chain,
-        type=option,
-        create_time=datetime.datetime.now()
-    )
+    if isFirst is True:
+        user_detection, _ = await models.UserDetection.get_or_create(
+            address=user_address,
+            user_address=user_address,
+            chain=chain,
+            type=option,
+            create_time=datetime.datetime.now()
+        )
+    else:
+        user_detection = await models.UserDetection.filter(
+            address=user_address,
+            user_address=user_address,
+            chain=chain,
+            type=option
+        ).order_by("-id").first()
+    print("user_detection_id", user_detection.id)
 
     status, result = await get_detect_result(chain_id, user_address, option)
     if status:
@@ -276,7 +285,7 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
 
 async def merge_erc20_nft721_detect(user_address, chain, chain_id, isFirst=False):
     erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2, isFirst=isFirst)
-    nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3)
+    nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3, isFirst=isFirst)
 
     if erc20 != "not result":
         asset_erc20 = erc20.pop("asset_count_risk")
