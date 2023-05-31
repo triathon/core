@@ -114,8 +114,8 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         if result.get("is_in_dex") == 0:
             trading_security = {}
         else:
-            buy_tax = result.get("buy_tax", '0')
-            sell_tax = result.get("sell_tax", '0')
+            buy_tax = result.get("buy_tax", 0) if result.get("buy_tax") else 0
+            sell_tax = result.get("sell_tax", 0) if result.get("sell_tax") else 0
             trading_security = {"buy_tax": buy_tax, "sell_tax": sell_tax}
             if float(buy_tax)*100 > 1 or float(sell_tax)*100 > 1:
                 tax_risk_type = 2
