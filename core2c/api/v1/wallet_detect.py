@@ -248,13 +248,22 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
     detect save db
     :param option: 2token授权检测 3erc721授权检测
     """
-    user_detection, _ = await models.UserDetection.get_or_create(
-        address=user_address,
-        user_address=user_address,
-        chain=chain,
-        type=option,
-        create_time=datetime.datetime.now()
-    )
+    if isFirst is True:
+        user_detection, _ = await models.UserDetection.get_or_create(
+            address=user_address,
+            user_address=user_address,
+            chain=chain,
+            type=option,
+            create_time=datetime.datetime.now()
+        )
+    else:
+        user_detection = await models.UserDetection.filter(
+            address=user_address,
+            user_address=user_address,
+            chain=chain,
+            type=option
+        ).order_by("-id").first()
+    print("user_detection_id", user_detection.id)
 
     status, result = await get_detect_result(chain_id, user_address, option)
     if status:
