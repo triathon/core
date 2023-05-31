@@ -285,7 +285,7 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
 
 async def merge_erc20_nft721_detect(user_address, chain, chain_id, isFirst=False):
     erc20 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=2, isFirst=isFirst)
-    nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3)
+    nft721 = await detect_create_table_and_to_result(user_address, chain, chain_id, option=3, isFirst=isFirst)
 
     if erc20 != "not result":
         asset_erc20 = erc20.pop("asset_count_risk")
