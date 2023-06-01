@@ -14,9 +14,9 @@
   "detectionTimeout": 600,
 
   "test_mining": {
-    "redis_host": "101.251.205.214",
-    "redis_port": 26379,
-    "redis_password":"octa8lab",
+    "redis_host": "xxx",
+    "redis_port": 0,
+    "redis_password":"xxx",
     "redis_db":5
   }
 }
