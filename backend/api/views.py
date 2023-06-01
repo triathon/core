@@ -36,6 +36,7 @@ from api.tools.detection_result import parseErrorResult
 from api.tools.deltaT import cal_time
 from api.tools.detect_item import parse_excel
 from api.tools.send_redis import send_pub_redis
+from api.tools.sol_filter import remove_comment
 
 rd = get_redis_connection()
 
@@ -138,6 +139,7 @@ class SubmitContractAddress(APIView):
         else:
             src_txt = src_code
             src_bin = src_code.encode()
+        src_txt = remove_comment(src_txt)
         hash = sha1(src_bin).hexdigest()
         data = {"user": request.user.pk, 'file_name': file_name + ".sol", "date": int(time.time()),
                 "sha1": hash, "file": src_bin, 'file_type': 'sol', "contract_address": address,
