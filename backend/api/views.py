@@ -577,6 +577,7 @@ class DetectionDetails2(APIView):
         # data
         data = {
             "executive": {
+                "wallet_addr": query.user.wallet_address,
                 "contract_address": query.contract_address,
                 "title_time": utc_time_title,
                 "type": "Token",
