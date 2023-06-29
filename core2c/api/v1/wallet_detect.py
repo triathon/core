@@ -303,7 +303,7 @@ async def merge_erc20_nft721_detect(user_address, chain, chain_id, isFirst=False
         asset_nft721_result = []
 
     asset_result = asset_erc20_result + asset_nft721_result
-    sort_result = sorted(asset_result, key=lambda x: x.get("deployed_time"), reverse=True)
+    sort_result = sorted(asset_result, key=lambda x: x.get("deployed_time") if x.get("deployed_time") else 0, reverse=True)
     data = {
         "erc20": erc20,
         "nft721": nft721,
