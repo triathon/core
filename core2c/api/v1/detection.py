@@ -443,7 +443,7 @@ async def token_detection(
     if not chain_id or chain_id is None:
         return await error_found("This chain is not supported yet/ chain error")
 
-    user_detection, _ = await models.UserDetection.get_or_create(
+    user_detection = await models.UserDetection.create(
         address=token_address,
         user_address=user_address,
         chain=chain,
@@ -514,7 +514,7 @@ async def nft_detection(
     if not chain_id or chain_id is None:
         return await error_found("This chain is not supported yet/ chain error")
 
-    user_detection, _ = await models.UserDetection.get_or_create(
+    user_detection = await models.UserDetection.create(
         address=detect_address,
         user_address=user_address,
         chain=chain,
