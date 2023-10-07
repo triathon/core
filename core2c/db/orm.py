@@ -37,6 +37,6 @@ TORTOISE_ORM = {
     'apps': {
         'models': {'models': get_orm_models(), 'default_connection': 'default'},
     },
-    'use_tz': False,
-    'timezone': 'Asia/Shanghai',
+    'use_tz': True,
+    'timezone': 'UTC',
 }
