@@ -25,10 +25,10 @@ def version_vif(version):
     version_group = version.group(1)
     if "^" in version_group:
         version = version_group.replace("^", "")
-    elif "=" in version_group:
-        version = version_group.replace("=", "")
     elif ">=" in version_group:
         version = version_group.replace(">=", "")
+    elif "=" in version_group:
+        version = version_group.replace("=", "")
     elif ">" in version_group:
         version = version_group.replace(">", "")
     else:
