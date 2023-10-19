@@ -450,15 +450,18 @@ async def token_detection(
         chain=chain,
         type=1
     )
-    start_time = time.time()
-    logger.info(f"[api]: token_detection start request goplus api; time:{start_time}")
+    goplus_start_time = time.time()
+    logger.info(f"[api]: token_detection start request goplus api; time:{goplus_start_time}")
     content = await goplus_detection(
         config['goplus_api'].get("token_security").format(chain=chain_id, token_address=token_address))
-    end_time = time.time()
-    logger.info(f"[api]: end request goplus api; time:{end_time}; run-time: {end_time-start_time}")
+    goplus_end_time = time.time()
+    logger.info(f"[api]: end request goplus api; time:{goplus_end_time}; run-time: {goplus_end_time-goplus_start_time}")
     if not content:
         return await error_found("detection failure")
+    logger.info(f"[api]: save_token_detection_result start")
     status, _, msg = await save_token_detection_result(content, token_address, user_detection.id)
+    save_token_end_time = time.time()
+    logger.info(f"[api]: save_token_detection_result end; time:{save_token_end_time-goplus_end_time}")
     user_detection.create_time = datetime.datetime.now()
     if status:
         user_detection.status = "1"
@@ -467,10 +470,18 @@ async def token_detection(
             user_detection=user_detection,
             type=2
         )
+
+        logger.info(f"[api]: token_detection_details start")
         result = await token_detection_details(user_detection)
+        token_detection_details_end_time = time.time()
+        logger.info(f"[api]: token_detection_details end; time:{token_detection_details_end_time - save_token_end_time}")
+        logger.info(f"[api]: send_pub_redis start")
         await send_pub_redis(
             user_detection.id, result.get("medium_risk"), result.get("high_risk"), user_detection.user_address
         )
+        send_pub_redis_end_time = time.time()
+        logger.info(f"[api]: send_pub_redis end; time:{send_pub_redis_end_time - token_detection_details_end_time}")
+        logger.info("finish.")
         return await success(result)
     else:
         user_detection.status = "2"
