@@ -435,6 +435,7 @@ async def token_detection(
     :param chain:
     :return:
     """
+    logger.info("[api]: token_detection start")
     if not user_address:
         return await error_found("no user address")
     if not token_address:
@@ -449,9 +450,12 @@ async def token_detection(
         chain=chain,
         type=1
     )
-
+    start_time = time.time()
+    logger.info(f"[api]: token_detection start request goplus api; time:{start_time}")
     content = await goplus_detection(
         config['goplus_api'].get("token_security").format(chain=chain_id, token_address=token_address))
+    end_time = time.time()
+    logger.info(f"[api]: end request goplus api; time:{end_time}; run-time: {end_time-start_time}")
     if not content:
         return await error_found("detection failure")
     status, _, msg = await save_token_detection_result(content, token_address, user_detection.id)
