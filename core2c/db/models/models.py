@@ -45,6 +45,13 @@ class TokenDetection(Model):
     contract_security = fields.JSONField(null=True)
     trading_security = fields.JSONField(null=True)
     error = fields.TextField(null=True)
+    cs_medium_risk = fields.IntField(null=True)
+    cs_high_stake = fields.IntField(null=True)
+    ts_medium_risk = fields.IntField(null=True)
+    ts_high_stake = fields.IntField(null=True)
+    ts_sell_tax = fields.TextField(null=True)
+    ts_is_honeypot = fields.IntField(null=True)
+    ts_slippage_modifiable = fields.IntField(null=True)
 
     class Meta:
         table = "token_detection"

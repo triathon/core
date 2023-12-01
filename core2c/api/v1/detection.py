@@ -142,6 +142,14 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         token.contract_security = json.dumps(contract_security)
         token.trading_security = json.dumps(trading_security)
 
+        token.cs_medium_risk = contract_security.get("medium_risk")
+        token.cs_high_stake = contract_security.get("high_stake")
+        token.ts_medium_risk = trading_security.get("medium_risk")
+        token.ts_high_stake = trading_security.get("high_stake")
+        token.ts_sell_tax = trading_security.get("sell_tax")
+        token.ts_is_honeypot = trading_security.get("is_honeypot")
+        token.ts_slippage_modifiable = trading_security.get("slippage_modifiable")
+
         await token.save()
         return True, token, "ok"
     except Exception as e:
