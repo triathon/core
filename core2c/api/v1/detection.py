@@ -149,7 +149,7 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         token.ts_sell_tax = trading_security.get("sell_tax")
         token.ts_is_honeypot = trading_security.get("is_honeypot")
         token.ts_slippage_modifiable = trading_security.get("slippage_modifiable")
-
+        token.honeypot = 1 if (token.ts_is_honeypot == 1 or token.ts_slippage_modifiable == 1 or token.ts_sell_tax == '1') else 0
         await token.save()
         return True, token, "ok"
     except Exception as e:
