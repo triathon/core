@@ -52,6 +52,7 @@ class TokenDetection(Model):
     ts_sell_tax = fields.TextField(null=True)
     ts_is_honeypot = fields.IntField(null=True)
     ts_slippage_modifiable = fields.IntField(null=True)
+    honeypot = fields.IntField(null=True)
 
     class Meta:
         table = "token_detection"
