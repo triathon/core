@@ -20,6 +20,8 @@ class UserDetection(Model):
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     update_time = fields.DatetimeField(auto_now=True, null=True, description="修改时间")
     status = fields.CharField(max_length=10, default="0", description="0检测中1检测成功2检测失败")
+    medium_risk = fields.IntField(null=True)
+    high_stake = fields.IntField(null=True)
 
     class Meta:
         table = "user_detection"

@@ -151,7 +151,9 @@ async def save_token_detection_result(content, token_address, user_detection_id)
         token.ts_slippage_modifiable = trading_security.get("slippage_modifiable")
         token.honeypot = 1 if (token.ts_is_honeypot == 1 or token.ts_slippage_modifiable == 1 or token.ts_sell_tax == '1') else 0
         await token.save()
-        return True, token, "ok"
+        medium_risk = contract_security.get("medium_risk") + trading_security.get("medium_risk")
+        high_stake = contract_security.get("high_stake") + trading_security.get("high_stake")
+        return True, {"medium_risk": medium_risk, "high_stake": high_stake}, "ok"
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -467,12 +469,14 @@ async def token_detection(
     if not content:
         return await error_found("detection failure")
     logger.info(f"[api]: save_token_detection_result start")
-    status, _, msg = await save_token_detection_result(content, token_address, user_detection.id)
+    status, res, msg = await save_token_detection_result(content, token_address, user_detection.id)
     save_token_end_time = time.time()
     logger.info(f"[api]: save_token_detection_result end; time:{save_token_end_time-goplus_end_time}")
     user_detection.create_time = datetime.datetime.now()
     if status:
         user_detection.status = "1"
+        user_detection.medium_risk = res.get("medium_risk")
+        user_detection.high_stake = res.get("high_stake")
         await user_detection.save()
         await models.DetectionTotalCount.create(
             user_detection=user_detection,
