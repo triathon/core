@@ -2,6 +2,7 @@ ALTER TABLE user_detection ADD COLUMN medium_risk integer;
 ALTER TABLE user_detection ADD COLUMN high_stake integer;
 --
 
+-- update value
 UPDATE user_detection as a SET
   medium_risk = (
 	select (
@@ -16,4 +17,5 @@ UPDATE user_detection as a SET
 		) as medium_sum from token_detection as b WHERE a.id = b.user_detection_id limit 1
 	)::integer;
 
+-- create index
 CREATE INDEX mr_hs ON user_detection (medium_risk, high_stake);
