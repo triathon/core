@@ -181,7 +181,7 @@ async def token_detection_details(query):
 
     # time utc
     time_struct = int(time.mktime(query.create_time.timetuple()))
-    utc_time = datetime.datetime.utcfromtimestamp(time_struct-28800).strftime("UTC %d/%m/%Y %H:%M:%S")
+    utc_time = datetime.datetime.utcfromtimestamp(time_struct).strftime("UTC %d/%m/%Y %H:%M:%S")
 
     # risk
     if token_query.contract_security:
@@ -372,7 +372,7 @@ async def nft_detection_details(query):
 
     # time utc
     time_struct = int(time.mktime(query.create_time.timetuple()))
-    utc_time = datetime.datetime.utcfromtimestamp(time_struct-28800).strftime("UTC %d/%m/%Y %H:%M:%S")
+    utc_time = datetime.datetime.utcfromtimestamp(time_struct).strftime("UTC %d/%m/%Y %H:%M:%S")
 
     # result
     result = {
