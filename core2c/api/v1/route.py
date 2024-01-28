@@ -3,7 +3,7 @@
 @File        : route.py
 @Author      : Aug
 @Time        : 2023/2/13 15:48
-@Description : 路由
+@Description : route
 """
 from fastapi.routing import APIRouter
 

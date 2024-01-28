@@ -4,8 +4,8 @@ from collections import OrderedDict
 import requests
 from conf import config
 
-# 使用contact@triathon.space注册，密码见mainstage项目
-# api请求5个/s
+# register using contact@triathon.space ，see the “mainstage” project for passwords
+# api request 5/s
 apikey = {"bsc": config.apikey_bsc,
           "eth": config.apikey_eth}
 endpoint = {"bsc": "https://api.bscscan.com/api",

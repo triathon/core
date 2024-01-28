@@ -32,90 +32,25 @@ postgres install
 
 #### configuration
 
-django service configuration
+##### django service configuration
 
 path: backend/conf/conf.json
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis": "",
-  "coreslither_queue": "coreslither",
-  "corethril_queue": "corethril"
-}
-```
-
-coreslither configuration
+##### coreslither configuration
 
 path: coreslither/coreslither/config.conf
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis_host": "",
-  "redis_port": ,
-  "redis_password":"",
-  "redis_db":5,
-  "task_queue": "coreslither"
-}
-```
-
-corethril configuration
+##### corethril configuration
 
 path: corethril/corethril/config.conf
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis_host": "",
-  "redis_port": ,
-  "redis_password":"",
-  "redis_db":5,
-  "task_queue": "corethril"
-}
-```
-
-coreSmartian configuration
+##### coreSmartian configuration
 
 path: coresmartian/coresmartian/config.conf
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis_host": "",
-  "redis_port": ,
-  "redis_password":"",
-  "redis_db":5,
-  "task_queue": "coresmartian",
-  "test_timeout": 6
-}
-```
-
-bsc/eth API Keys configuration
+##### bsc/eth API Keys configuration
 
 path: backend/api/tools/contract_helper.py
-
-```
-apikey = {"bsc": "",
-          "eth": ""}
-```
-
 
 #### API service run
 

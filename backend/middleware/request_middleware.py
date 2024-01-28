@@ -17,7 +17,7 @@ class RequestMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         """
-        重写返回逻辑
+        override return logic
         @param request:
         @param response:
         @return:
@@ -88,7 +88,7 @@ class RequestMiddleware(MiddlewareMixin):
 
     def process_exception(self, request, exception):
         """
-        捕捉异常
+        catch exception
         @param request:
         @param exception:
         @return:

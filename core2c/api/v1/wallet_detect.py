@@ -246,7 +246,7 @@ async def get_detect_result(chain_id, user_address, option):
 async def detect_create_table_and_to_result(user_address, chain, chain_id, option=2, isFirst=False):
     """
     detect save db
-    :param option: 2token授权检测 3erc721授权检测
+    :param option: 2:token authorization detection 3: erc 721 authorization detection
     """
     if isFirst is True:
         user_detection, _ = await models.UserDetection.get_or_create(
@@ -263,7 +263,6 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
             chain=chain,
             type=option
         ).order_by("-id").first()
-    print("user_detection_id", user_detection.id)
 
     status, result = await get_detect_result(chain_id, user_address, option)
     if status:
@@ -271,7 +270,6 @@ async def detect_create_table_and_to_result(user_address, chain, chain_id, optio
     else:
         user_detection.status = "2"
     if option == 2 and isFirst is True:
-        print('isFirst', isFirst)
         await models.DetectionTotalCount.get_or_create(
             user_detection=user_detection
         )
@@ -337,9 +335,9 @@ async def token_detection(
 ):
     """
     home search
-    :param user_address:用户钱包地址
-    :param chain: 链(ETH,BSC)
-    :param option: 2token授权检测 3nft721授权检测
+    :param user_address:user wallet address
+    :param chain: chain(ETH,BSC)
+    :param option: 2: token authorization detection 3:nft721 authorization detection
     :return:
     """
     if not user_address:
@@ -363,9 +361,9 @@ async def merge_detection(
 ):
     """
     home search
-    :param user_address:用户钱包地址
-    :param chain: 链(ETH,BSC)
-    :param isFirst: 是否主动触发
+    :param user_address:user wallet address
+    :param chain: chain(ETH,BSC)
+    :param isFirst: active trigger or not
     :return:
     """
     if not user_address:

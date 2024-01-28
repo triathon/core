@@ -107,13 +107,6 @@ class Merge(object):
         if current_file.split('/')[-1] in processed:
             return processed, ''
 
-        # if len(processed) == 16:
-        #     a += 1
-        #     if a == 5:
-        #         raise
-        #     print(f"-------------- \n processed: {len(processed)}")
-        #     print(f"current_file: {current_file}")
-
         with open(current_file, "r+") as f:
             for line in f:
                 # Remove the pragma line in all imports

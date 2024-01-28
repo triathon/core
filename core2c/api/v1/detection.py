@@ -440,8 +440,8 @@ async def token_detection(
 ):
     """
     home search
-    :param user_address:用户钱包地址
-    :param token_address:token地址
+    :param user_address:user wallet address
+    :param token_address:token address
     :param chain:
     :return:
     """
@@ -525,8 +525,8 @@ async def nft_detection(
 ):
     """
     home search
-    :param user_address:用户钱包地址
-    :param detect_address:检测地址
+    :param user_address:user wallet address
+    :param detect_address:detect address
     :param chain:
     :return:
     """

@@ -12,15 +12,15 @@ from pydantic.main import BaseModel
 
 
 class BaseResponse(BaseModel):
-    """基础返回值"""
-    code: int  # 状态码
-    msg: str  # 信息
-    data: Any  # 返回数据
+    """base return value"""
+    code: int  # code
+    msg: str  # message
+    data: Any  # return data
 
 
-SUCCESS_RESPONSE = BaseResponse(code=http.HTTPStatus.OK, msg="success", data=None)  # 成功的http返回结构
-NOTFOUND_RESPONSE = BaseResponse(code=http.HTTPStatus.NOT_FOUND, msg="%s")  # 404的http返回结构
-ERROR_RESPONSE = BaseResponse(code=30001, msg="%s")  # 30001的http返回结构
+SUCCESS_RESPONSE = BaseResponse(code=http.HTTPStatus.OK, msg="success", data=None)
+NOTFOUND_RESPONSE = BaseResponse(code=http.HTTPStatus.NOT_FOUND, msg="%s")
+ERROR_RESPONSE = BaseResponse(code=30001, msg="%s")
 
 
 async def success(data=None):

@@ -13,7 +13,7 @@ from conf import config
 
 
 def get_orm_models():
-    """获取models"""
+    """get models"""
     models = []
     db_path = Path(__file__).parent / 'models'
 

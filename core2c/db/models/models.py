@@ -13,19 +13,19 @@ from tortoise.models import Model
 
 class UserDetection(Model):
     id = fields.IntField(pk=True)
-    address = fields.CharField(max_length=255, description="检测地址")
-    user_address = fields.CharField(max_length=255, description="用户钱包地址")
-    chain = fields.CharField(max_length=30, description="链类型")
-    type = fields.IntField(description="1 token检测 2token授权检测 3erc721授权检测 4nft检测")
-    create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
-    update_time = fields.DatetimeField(auto_now=True, null=True, description="修改时间")
-    status = fields.CharField(max_length=10, default="0", description="0检测中1检测成功2检测失败")
+    address = fields.CharField(max_length=255, description="detectAddress")
+    user_address = fields.CharField(max_length=255, description="userWalletAddress")
+    chain = fields.CharField(max_length=30, description="chainType")
+    type = fields.IntField(description="1 token Detection /2 token authorization detection /3 erc721 Authorization detection /4 nft detection")
+    create_time = fields.DatetimeField(auto_now_add=True, description="creationTime")
+    update_time = fields.DatetimeField(auto_now=True, null=True, description="modificationTime")
+    status = fields.CharField(max_length=10, default="0", description="0 in the detection/ 1 succeeds and /2 fails")
     medium_risk = fields.IntField(null=True)
     high_stake = fields.IntField(null=True)
 
     class Meta:
         table = "user_detection"
-        table_description = "用户检测"
+        table_description = "user detection"
 
 
 class TokenDetection(Model):
@@ -58,7 +58,7 @@ class TokenDetection(Model):
 
     class Meta:
         table = "token_detection"
-        table_description = "token检测"
+        table_description = "token detection"
 
 
 class NftDetection(Model):
@@ -83,7 +83,7 @@ class NftDetection(Model):
 
     class Meta:
         table = "nft_detection"
-        table_description = "nft检测结果"
+        table_description = "nft test results"
 
 
 def discretize(x):
@@ -99,9 +99,9 @@ def random_num():
 class DetectionTotalCount(Model):
     id = fields.IntField(pk=True)
     user_detection = fields.ForeignKeyField("models.UserDetection", on_delete=fields.CASCADE)
-    type = fields.IntField(default=1, description="1 钱包检测 2token/nft检测")
+    type = fields.IntField(default=1, description="1 wallet detection 2 token/nft detection")
     num = fields.IntField(default=random_num)
 
     class Meta:
         table = "detect_total_count"
-        table_description = "检测总数"
+        table_description = "total detection"
