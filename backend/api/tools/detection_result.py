@@ -15,7 +15,7 @@ rd = get_redis_connection()
 
 def parseErrorResult(did) -> (bool, str):
     """
-    处理检测异常数据
+    processing detects abnormal data
     did
     return:
         whether there is an anomaly：True/ False

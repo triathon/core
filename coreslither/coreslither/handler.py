@@ -20,7 +20,7 @@ pattern = r"\(.*?\)"
 
 def version_vif(version):
     """
-    版本
+    versions
     """
     version_group = version.group(1)
     if "^" in version_group:

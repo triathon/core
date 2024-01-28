@@ -12,8 +12,8 @@ import time
 
 def cal_time(stamp1, stamp2):
     """
-    :param stamp1: 历史时间
-    :param stamp2: 现在时间
+    :param stamp1: historical time
+    :param stamp2: present time
     """
     t1 = time.localtime(stamp1)
     t2 = time.localtime(stamp2)

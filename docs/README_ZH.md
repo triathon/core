@@ -29,88 +29,33 @@ postgres启动
 
 #### 配置
 
-django服务配置
+django service-configuration
 
 path: backend/conf/conf.json
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis": "",
-  "coreslither_queue": "coreslither",
-  "corethril_queue": "corethril"
-}
-```
+=====
 
-coreslither配置
+coreslither configuration
 
 path: coreslither/coreslither/config.conf
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis_host": "",
-  "redis_port": ,
-  "redis_password":"",
-  "redis_db":5,
-  "task_queue": "coreslither"
-}
-```
+=====
 
-corethril配置
+corethril configuration
 
 path: corethril/corethril/config.conf
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis_host": "",
-  "redis_port": ,
-  "redis_password":"",
-  "redis_db":5,
-  "task_queue": "corethril"
-}
-```
+=====
 
-coreSmartian配置
+coreSmartian configuration
 
 path: coresmartian/coresmartian/config.conf
 
-```
-{
-  "db_host": "",
-  "db_port": "",
-  "db_name": "",
-  "db_user": "",
-  "db_password": "",
-  "redis_host": "",
-  "redis_port": ,
-  "redis_password":"",
-  "redis_db":5,
-  "task_queue": "coresmartian"
-}
-```
+=====
 
-bsc/eth apikey配置
+bsc/eth apikey configuration
 
 path: backend/api/tools/contract_helper.py
-
-```
-apikey = {"bsc": "",
-          "eth": ""}
-```
 
 #### api服务启动
 

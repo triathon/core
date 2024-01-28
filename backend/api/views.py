@@ -304,7 +304,7 @@ class TotalDetection(APIView):
     permission_classes = []
     authentication_classes = []
     """
-    返回检测总数
+    return detection total
     """
 
     def get(self, request: Request):
@@ -322,7 +322,7 @@ class MyPageNumberPagination(PageNumberPagination):
 
 class DetectionLog(ListAPIView):
     """
-    检测log
+    detection log
     """
     permission_classes = []
     authentication_classes = []
@@ -352,7 +352,7 @@ class DetectionLog(ListAPIView):
 
 class DetectionDetails(APIView):
     """
-    检测详情
+    detection details
     """
     permission_classes = []
     authentication_classes = []
@@ -366,10 +366,7 @@ class DetectionDetails(APIView):
             return Response({"code": 30001, "msg": "not contract"})
 
         result = query.result
-        # corethril = result.get("corethril")
         core_slither = result.get("core_slither")
-        # core_smartian = result.get("core_smartian")
-        # if (not corethril and corethril != []) or (not core_slither and core_slither != []):
         if not core_slither and core_slither != []:
             status, err = parseErrorResult(did)
             if status:
@@ -385,7 +382,7 @@ class DetectionDetails(APIView):
             return Response({"code": 200, "msg": "under detecting"})
 
         if not query.score:
-            # 处理检测数据
+            # processing test data
 
             for i in core_slither:
                 res_data = {
@@ -449,7 +446,7 @@ class DetectionDetails(APIView):
 
 class DetectionDetails2(APIView):
     """
-    检测详情
+    detection details
     """
     permission_classes = []
     authentication_classes = []
@@ -480,7 +477,7 @@ class DetectionDetails2(APIView):
             return Response({"code": 200, "msg": "under detecting"})
 
         if not query.score:
-            # 处理检测数据
+            # processing test data
 
             for i in core_slither:
                 impact = i.get("impact")

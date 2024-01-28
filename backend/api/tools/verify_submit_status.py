@@ -11,14 +11,14 @@ import time
 from conf import config
 from api.tools import detection_result
 
-# 每日检测次数
+# number of tests per day
 number_of_detection = config.number_of_detection
 
 
 def checkstatus(doc, result):
-    """检查检测状态
+    """check detection status
     :return :
-        0等待检测1正在检测2检测超次数
+        0: wait for detection / 1:beTesting / 2: detection overshoot
     """
     if check_whether_there_is_detect(doc, result):
         first = doc.first()
@@ -36,7 +36,7 @@ def checkstatus(doc, result):
 
 
 def check_whether_there_is_detect(doc, result):
-    """检查是否有正在检测中的
+    """check to see if any are being detected
     :param doc:
     """
     core_slither = result.get("core_slither")
@@ -56,7 +56,7 @@ def check_whether_there_is_detect(doc, result):
 
 def check_detection_numberOfTimes(count):
     """
-    检查检测次数是否超标
+    Check whether the number of detections exceeds the standard
     """
     if count >= number_of_detection:
         return True

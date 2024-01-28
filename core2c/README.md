@@ -1,33 +1,33 @@
 # Core2c
 
-core2c是一个检测服务,fastapi框架
-# 代码说明
+core 2c is a detection service
+# CODE-SPECIFICATION
 
-以下全部说明是以在当前文件夹下为前提
+All instructions below are based on the premise that they are in the current folder
 
-## 1 代码
-git地址: https://github.com/triathon/core
+## 1 code
+git: https://github.com/triathon/core
 
-main: 主分支
+main: main-branch
 
-代码文件夹: core2c
-## 2 环境构建
+code-folder: core2c
+## 2 ENVIRONMENT_CONSTITUTION
 
-需在当前目录下构建镜像
-### 2.1 开发环境构建
+create an image in the current directory
+### 2.1 development environment construction
 
-文件夹下的dev.dockerfile是开发环境的docker镜像构建文件，使用该文件构建镜像后可以使用开发工具在容器内进行开发。
+The dev.dockerfile in the folder is the docker image construction file of the development environment. After the image is built using this file, development tools can be used to develop the image in the container。
 
-### 2.2 生产环境构建
+### 2.2 production environment construction
 
-文件夹下的dockerfile是生产环境的docker镜像构建文件
+The Dockerfiles in the folder are docker image build files for the production environment
 
-## 3 数据库
+## 3 database
 PostgreSQL 12.0 \
-在db文件夹下存放了sql命令。\
+the sql commands are stored in the db folder。
 
 path: /db/migrations/001_20230215_2323/schema.sql
 
-## 4 配置
+## 4 configuration
 
 /conf/conf.json
